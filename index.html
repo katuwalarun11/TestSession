@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PM Practice Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F5F0; --paper-dark:#0F1720;
+    --ink:#1E2430; --ink-dark:#E8E6DF;
+    --sub:#5B6472; --sub-dark:#9AA3AF;
+    --line:#DEDACD; --line-dark:#2B3442;
+    --card:#FFFFFF; --card-dark:#161D28;
+    --accent:#8A3324;
+    --green:#1F7A4D; --green-bg:#E7F5EC;
+    --red:#B3261E; --red-bg:#FBE9E7;
+    --amber:#92650B; --amber-bg:#FDF3D8;
+    --grey-bg:#EFEDE5;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:var(--paper-dark); --ink:var(--ink-dark); --sub:var(--sub-dark);
+      --line:var(--line-dark); --card:var(--card-dark); --grey-bg:#1D2531;
+      --green-bg:#12281D; --red-bg:#2A1614; --amber-bg:#2E2410;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:var(--paper-dark); --ink:var(--ink-dark); --sub:var(--sub-dark);
+    --line:var(--line-dark); --card:var(--card-dark); --grey-bg:#1D2531;
+    --green-bg:#12281D; --red-bg:#2A1614; --amber-bg:#2E2410;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+  body{padding:24px 16px 60px;}
+  .wrap{max-width:760px;margin:0 auto;}
+
+  header{margin-bottom:16px;}
+  .kicker{font-size:12.5px;color:var(--accent);font-weight:600;letter-spacing:.02em;}
+  h1{font-family:'Source Serif 4',serif;font-weight:700;font-size:24px;line-height:1.25;margin:4px 0 6px;}
+  .sub{color:var(--sub);font-size:13.5px;line-height:1.5;max-width:64ch;}
+
+  .chaptertabs{padding:14px 0 6px;margin-bottom:6px;}
+  .chapterselect{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:14.5px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;}
+  .chapterselect:focus{outline:2px solid var(--accent);outline-offset:1px;}
+
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0 10px;}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;user-select:none;transition:transform .1s;}
+  .stat:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .stat.selfilter{outline:2px solid var(--accent);}
+  .stat b{display:block;font-family:'Source Serif 4',serif;font-size:19px;line-height:1.1;}
+  .stat span{font-size:10px;color:var(--sub);}
+  .stat.correct b{color:var(--green);} .stat.wrong b{color:var(--red);}
+  .stat.unattempted b{color:var(--sub);}
+  .stat.needspractice{background:var(--amber-bg);} .stat.needspractice b{color:var(--amber);} .stat.needspractice span{color:var(--amber);}
+  .stat.mastered{background:var(--green-bg);} .stat.mastered b{color:var(--green);} .stat.mastered span{color:var(--green);}
+
+  .bar{height:6px;background:var(--grey-bg);border-radius:4px;overflow:hidden;margin-bottom:14px;}
+  .bar i{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .3s;}
+
+  .toolrow{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:20px;padding:6px 13px;font-size:12px;cursor:pointer;font-weight:500;}
+  .chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .ghostbtn{border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:20px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer;}
+  .ghostbtn.accentline{border-color:var(--accent);color:var(--accent);}
+
+  .resetrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .resetbtn{border:1px solid var(--red);background:transparent;color:var(--red);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+
+  .insightsPanel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:18px;}
+  .insightsPanel h3{font-family:'Source Serif 4',serif;font-size:15px;margin:0 0 4px;}
+  .insightsPanel .sec{margin-top:14px;}
+  .insightsPanel .sec:first-of-type{margin-top:8px;}
+  .insightsPanel .sechead{font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
+  .insight-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;gap:10px;}
+  .insight-row:last-child{border-bottom:none;}
+  .badge-count{background:var(--grey-bg);border-radius:12px;padding:1px 9px;font-size:11.5px;font-weight:700;flex-shrink:0;}
+  .badge-count.hot{background:var(--red-bg);color:var(--red);}
+  .diffcounts{display:flex;gap:8px;flex-wrap:wrap;}
+  .diffcount{border-radius:8px;padding:8px 10px;text-align:center;flex:1;min-width:70px;}
+  .diffcount b{display:block;font-size:17px;font-family:'Source Serif 4',serif;}
+  .diffcount span{font-size:10px;}
+  .diffcount.easy{background:var(--green-bg);color:var(--green);}
+  .diffcount.medium{background:var(--amber-bg);color:var(--amber);}
+  .diffcount.hard{background:var(--red-bg);color:var(--red);}
+  .diffcount.new{background:var(--grey-bg);color:var(--sub);}
+  .empty-note{font-size:12.5px;color:var(--sub);}
+
+  .q{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:10px;padding:16px 16px 14px;margin-bottom:12px;}
+  .q.correct{border-left-color:var(--green);}
+  .q.wrong{border-left-color:var(--red);}
+  .qtop{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap;}
+  .ref{font-family:'Source Serif 4',serif;font-weight:600;font-size:14.5px;}
+  .eyebtn{border:none;background:var(--grey-bg);color:var(--sub);border-radius:20px;padding:2px 9px;font-size:11px;cursor:pointer;font-weight:600;}
+  .pillrow{display:none;gap:6px;align-items:center;}
+  .pillrow.shown{display:inline-flex;}
+  .topic-pill,.source-pill{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.01em;}
+  .source-pill{background:var(--grey-bg);color:var(--sub);}
+  .difftag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.02em;text-transform:uppercase;}
+  .difftag.easy{background:var(--green-bg);color:var(--green);}
+  .difftag.medium{background:var(--amber-bg);color:var(--amber);}
+  .difftag.hard{background:var(--red-bg);color:var(--red);}
+  .difftag.new{background:var(--grey-bg);color:var(--sub);}
+  .masterbtn{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.02em;text-transform:uppercase;border:1px solid var(--line);background:var(--card);color:var(--sub);cursor:pointer;}
+  .status-pill{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:auto;}
+  .status-pill.correct{background:var(--green-bg);color:var(--green);}
+  .status-pill.wrong{background:var(--red-bg);color:var(--red);}
+  .status-pill.unattempted{background:var(--grey-bg);color:var(--sub);}
+  .note-flag{font-size:10.5px;color:var(--accent);font-weight:600;}
+
+  .stem{font-size:14.5px;line-height:1.55;margin-bottom:12px;}
+
+  .timerbox{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);margin-bottom:10px;flex-wrap:wrap;}
+  .timerdisplay{font-family:'Source Serif 4',serif;font-weight:600;color:var(--ink);min-width:44px;}
+  .timerbtn{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:3px 10px;font-size:11.5px;cursor:pointer;font-weight:600;color:var(--sub);}
+  .timerbtn.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .timerbtn:disabled{opacity:.4;cursor:default;}
+  .timertotal{font-size:11px;color:var(--sub);}
+
+  .opts{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+  .opt{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--line);border-radius:8px;padding:9px 11px;cursor:pointer;font-size:13.5px;line-height:1.4;}
+  .opt input{margin-top:2px;flex-shrink:0;}
+  .opt.picked{background:var(--grey-bg);}
+  .opt.is-correct{background:var(--green-bg);border-color:var(--green);}
+  .opt.is-wrong{background:var(--red-bg);border-color:var(--red);}
+
+  .numin,.longin{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13.5px;font-family:'Inter',sans-serif;background:var(--card);color:var(--ink);margin-bottom:6px;resize:vertical;}
+  .numin{min-height:38px;}
+  .longin{min-height:90px;}
+  .numin:focus,.longin:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .hint{font-size:11.5px;color:var(--sub);margin:-2px 0 10px;}
+
+  .tfrow{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13px;}
+  .tfrow .lbl{flex:1;}
+  .tfbtns{display:flex;gap:5px;flex-shrink:0;}
+  .tfbtn{border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-weight:600;}
+  .tfbtn.sel{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .tfbtn.right{background:var(--green-bg);color:var(--green);border-color:var(--green);}
+  .tfbtn.wrongsel{background:var(--red-bg);color:var(--red);border-color:var(--red);}
+
+  .actions{display:flex;gap:8px;margin:10px 0 4px;flex-wrap:wrap;}
+  .btn{border:none;border-radius:7px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+  .btn.primary{background:var(--ink);color:var(--paper);}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--sub);}
+  .btn.good{background:var(--green);color:#fff;}
+  .btn.bad{background:var(--red);color:#fff;}
+  .btn:disabled{opacity:.45;cursor:default;}
+
+  .reveal{background:var(--grey-bg);border-radius:8px;padding:12px 13px;margin-top:8px;font-size:13.5px;line-height:1.55;}
+  .reveal .verdict{font-weight:700;margin-bottom:5px;}
+  .reveal .verdict.correct{color:var(--green);}
+  .reveal .verdict.partial{color:var(--amber);}
+  .reveal .verdict.wrong{color:var(--red);}
+  .attempthist{font-size:11.5px;color:var(--sub);margin-top:8px;}
+  .attempthist .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:-1px;}
+  .attempthist .dot.c{background:var(--green);}
+  .attempthist .dot.w{background:var(--red);}
+  .attempthist .dot.p{background:var(--amber);}
+  .attempthist .dot.slow{background:var(--amber);}
+
+  #sessionPrompt{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;}
+  #sessionPromptBox{max-width:320px;background:var(--card);border-radius:14px;padding:22px;text-align:center;}
+  #sessionPromptBox h3{margin:0 0 8px;font-family:'Source Serif 4',serif;}
+  #sessionPromptBox p{color:var(--sub);font-size:13px;margin:0 0 16px;}
+  #sessionPromptBox .btn{width:100%;margin-bottom:8px;}
+  #sessionPromptBox .ghostbtn{width:100%;}
+
+  .piewrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+  .pieslice{cursor:pointer;transition:opacity .15s;}
+  .pieslice:hover{opacity:.75;}
+  .pielegend{font-size:12px;flex:1;min-width:140px;}
+  .pielegend .lg-row{display:flex;align-items:center;gap:6px;padding:3px 0;cursor:default;}
+  .pielegend .lg-swatch{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+  .notewrap{margin-top:10px;}
+  .notewrap textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'Inter',sans-serif;background:var(--card);color:var(--ink);resize:vertical;min-height:38px;}
+  .saved-note{background:var(--card);border:1px dashed var(--accent);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:8px;color:var(--ink);}
+  .saved-note b{color:var(--accent);font-size:11px;}
+  .toggle-note-btn{font-size:12px;color:var(--sub);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;}
+
+  .spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:-1px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  footer{text-align:center;color:var(--sub);font-size:12px;margin-top:30px;line-height:1.6;}
+  .banner{font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:16px;display:none;}
+  .banner.warn{background:var(--red-bg);color:var(--red);}
+
+  #loginGate{position:fixed;inset:0;background:var(--paper);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;}
+  body.gate-blur #loginGate{background:rgba(247,245,240,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) body.gate-blur #loginGate{background:rgba(15,23,32,.6);} }
+  :root[data-theme="dark"] body.gate-blur #loginGate{background:rgba(15,23,32,.6);}
+  body.gate-blur .wrap{filter:blur(10px);pointer-events:none;user-select:none;}
+  #loginBox{max-width:340px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 22px;}
+  #loginBox h2{margin:0 0 6px;font-family:'Source Serif 4',serif;font-size:20px;}
+  #loginBox p{margin:0 0 18px;color:var(--sub);font-size:13px;line-height:1.5;}
+  #loginBox input{width:100%;padding:10px 12px;margin-bottom:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:14px;}
+  #loginBox button{width:100%;padding:11px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;}
+  #loginBox button:disabled{opacity:.6;cursor:default;}
+  #loginBox img{border:1px solid var(--line);border-radius:8px;display:block;margin:0 auto 10px;}
+  #loginBox code{background:var(--grey-bg);padding:2px 6px;border-radius:4px;word-break:break-all;font-size:12px;display:block;margin-bottom:10px;text-align:center;}
+  #loginError{color:var(--red);font-size:12px;margin:-2px 0 10px;min-height:14px;}
+  #logoutRow{text-align:right;margin-bottom:6px;}
+  #logoutRow button{font-size:12px;color:var(--sub);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0 0 0 14px;}
+  #securityPanel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;}
+  #securityPanel .ghostbtn{margin-top:6px;}
+  #securityPanel img{border:1px solid var(--line);border-radius:8px;}
+  #securityPanel code{background:var(--grey-bg);padding:2px 6px;border-radius:4px;word-break:break-all;}
+  #securityPanel input{width:100%;padding:8px 10px;margin:8px 0;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-size:13px;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="loginGate">
+
+  <div id="loginBox">
+    <h2>PM Practice Tracker</h2>
+    <p>Sign in with the login you were given. Your answers, notes and timing are private to your own account.</p>
+    <div id="loginError"></div>
+    <div id="loginFields">
+      <input id="loginEmail" type="email" placeholder="Email" autocomplete="username">
+      <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
+      <button id="loginBtn">Log in</button>
+    </div>
+    <div id="mfaFields" style="display:none;">
+      <p>Enter the 6-digit code from your authenticator app.</p>
+      <input id="mfaCode" type="text" inputmode="numeric" placeholder="6-digit code" autocomplete="one-time-code">
+      <button id="mfaVerifyBtn">Verify</button>
+    </div>
+    <div id="enrollFields" style="display:none;">
+      <p>Two-factor authentication is required for this account. Scan this with an authenticator app (Google Authenticator, Authy, etc.):</p>
+      <img id="enrollQr" width="160" height="160" alt="QR code">
+      <div class="hint" style="margin-bottom:2px;">Or enter this key manually:</div>
+      <code id="enrollSecret"></code>
+      <input id="enrollCode" type="text" inputmode="numeric" placeholder="6-digit code from your app" autocomplete="one-time-code">
+      <button id="enrollConfirmBtn">Confirm &amp; continue</button>
+    </div>
+  </div>
+</div>
+<div class="wrap">
+  <div id="logoutRow"><button id="securityBtn">🔒 Security</button><button id="logoutBtn">Log out</button></div>
+  <div id="securityPanel" style="display:none;"></div>
+  <header>
+    <div class="kicker">ACCA Performance Management</div>
+    <h1>PM Practice Tracker</h1>
+    <div class="sub">Real exam-kit questions, auto-marked, with saved notes, timing and a full attempt history — nothing is ever deleted, so you can reset and go again while keeping every past attempt on record.</div>
+  </header>
+
+  <div class="chaptertabs" id="chapterTabs"></div>
+
+  <div class="banner warn" id="storageWarn">This device/browser can't save your progress right now — everything still works, but won't be remembered after you close it.</div>
+
+  <div class="stats" id="statCards"></div>
+  <div class="bar"><i id="progressBar" style="width:0%"></i></div>
+
+  <div class="toolrow">
+    <button class="ghostbtn accentline" id="insightsToggle">📊 Insights</button>
+  </div>
+
+  <div class="resetrow">
+    <button class="resetbtn" id="resetChapterBtn">↺ Reset this chapter (start a fresh attempt)</button>
+    <button class="resetbtn" id="resetAllBtn">↺ Reset ALL chapters</button>
+    <button class="ghostbtn" id="shareHint">How do I share this?</button>
+  </div>
+  <div id="shareBox" class="hint" style="display:none;margin-bottom:14px;">Send this page's link to a friend along with the login you created for them. Everyone signs in with their own account, so each person's answer/notes/timing history is private — nobody sees anyone else's progress. Resetting this chapter never deletes anything — it archives your current answers into your attempt history. Resetting ALL chapters is different: that one really does erase everything, permanently.</div>
+
+  <div class="insightsPanel" id="insightsPanel" style="display:none;"></div>
+
+  <div class="resetrow" style="align-items:center;flex-wrap:wrap;">
+    <button class="btn primary" id="sessionToggle">▶ Play</button>
+    <button class="ghostbtn" id="endSessionBtn">✓ End session</button>
+    <span class="timerdisplay" id="sessionDisplay" style="font-size:16px;">0:00</span>
+    <span class="hint" style="margin:0;">Session timer — pause it whenever you take a break; it only counts while playing. Leaving or logging out never loses your place — just log back in and pick up where you stopped.</span>
+  </div>
+
+  <div id="qlist"></div>
+
+  <footer id="footerNote"></footer>
+</div>
+
+<div id="sessionPrompt" style="display:none;">
+  <div id="sessionPromptBox">
+    <h3>Ready to start?</h3>
+    <p>Hit play to track how long this session takes — it helps the "time per topic" insights below stay accurate.</p>
+    <button class="btn primary" id="sessionPromptPlay">▶ Start timing</button>
+    <button class="ghostbtn" id="sessionPromptSkip">Skip for now</button>
+  </div>
+</div>
+
+<script>
+/* ============ QUESTION BANK ============ */
+const CHAPTERS = [
+  {
+    id:"ch1",
+    label:"Chapter 1 — Absorption vs Marginal Costing",
+    locked:false,
+    footer:"These are original practice questions, not exam-kit ones — Chapter 1 (AC vs MC, OAR, under/over-absorption) is Applied Skills revision material, and neither the Kaplan Exam Kit nor the BPP Practice Kit has a dedicated question bank for it at PM level. Written to match the Study Text's own worked examples and Test Your Understanding exercises.",
+    questions:[
+{id:"c1q1",num:"1",source:"Original",topic:"AC vs MC",type:"mcq",
+ stem:"During a period, production exceeds sales, so closing inventory is HIGHER than opening inventory. Compared to marginal costing, absorption costing profit will be:",
+ options:["Higher","Lower","The same","Cannot be determined"], correct:0,
+ explanation:"When inventory rises, absorption costing carries a slice of fixed overhead forward in closing inventory (deferring it to a future period), so less fixed overhead hits this period's profit than under marginal costing (which writes off ALL fixed overhead as a period cost immediately). Fewer costs charged this period = <b>higher</b> AC profit than MC profit."},
+
+{id:"c1q2",num:"2",source:"Original",topic:"AC vs MC",type:"numeric",tolerance:1,
+ stem:"A company's opening inventory was 800 units and closing inventory 1,200 units. The fixed overhead absorption rate is $4/unit. Absorption costing reported a profit of $150,000 for the period. What is the marginal costing profit?",
+ correct:"148400",
+ explanation:"Inventory increased by 1,200−800 = 400 units. AC profit is higher than MC profit by (inventory increase × OAR) = 400 × $4 = $1,600. MC profit = $150,000 − $1,600 = <b>$148,400</b>."},
+
+{id:"c1q3",num:"3",source:"Original",topic:"Absorption Costing",type:"mcq",
+ stem:"Budgeted fixed overhead is $40,000 based on budgeted output of 8,000 units, giving an OAR of $5/unit. Actual output was 8,500 units, and actual fixed overhead incurred was $41,000. What is the result?",
+ options:["Under-absorbed by $1,500","Over-absorbed by $1,500","Under-absorbed by $1,000","Over-absorbed by $1,000"], correct:1,
+ explanation:"Overhead absorbed = actual output × OAR = 8,500 × $5 = $42,500. Actual overhead = $41,000. Absorbed exceeds actual by $1,500, so overhead is <b>over-absorbed by $1,500</b> — the business has charged more to production than it actually spent, so a credit adjustment of $1,500 is needed in the P&L."},
+
+{id:"c1q4",num:"4",source:"Original",topic:"Marginal Costing",type:"mcq",
+ stem:"Which of the following is a genuine ADVANTAGE of marginal costing over absorption costing?",
+ options:["It complies with IAS 2 for inventory valuation","Profit moves in line with sales volume, not production volume, since contribution per unit stays constant","It is required for external financial reporting","It shares fixed overheads fairly between units of production"], correct:1,
+ explanation:"Contribution per unit is constant under marginal costing regardless of activity level, so profit tracks sales (not production) in a simple, predictable way — genuinely useful for decision-making. IAS 2 compliance and external reporting are actually reasons to use absorption costing, not marginal costing; and 'sharing fixed overheads fairly' is an absorption costing feature, not a marginal costing one (MC writes fixed costs off in full instead)."},
+
+{id:"c1q5",num:"5",source:"Original",topic:"Absorption Costing",type:"mcq",
+ stem:"Which of the following is a genuine DISADVANTAGE of absorption costing, compared to marginal costing?",
+ options:["No under- or over-absorption of overheads can ever occur","It is simple to operate","It is more complex to operate and gives less useful information for short-term decision-making","It does not comply with IAS 2 inventory valuation rules"], correct:2,
+ explanation:"Absorption costing requires calculating and applying an OAR, tracking under/over-absorption, and it obscures cost behaviour (fixed vs variable) — all of which make it more complex and less useful for short-term decisions than marginal costing. The other three options are actually true of MARGINAL costing (no under/over-absorption, simple to operate) or false (AC DOES comply with IAS 2 — that's one of its advantages)."},
+
+{id:"c1q6",num:"6",source:"Original",topic:"Marginal Costing",type:"numeric",tolerance:1,
+ stem:"Product XY sells for $20/unit. Direct material $6, direct labour $2, variable overhead $4/unit. Fixed costs are $25,000 for the period. At what sales volume (units) does the company break even?",
+ correct:"3125",
+ explanation:"Contribution/unit = $20 − $6 − $2 − $4 = $8. Break-even = Fixed costs ÷ Contribution per unit = $25,000 ÷ $8 = <b>3,125 units</b>."},
+
+{id:"c1q7",num:"7",source:"Original",topic:"AC vs MC",type:"tfgroup",
+ stem:"Are the following statements about absorption costing (AC) and marginal costing (MC) TRUE or FALSE?",
+ statements:["AC values closing inventory at full production cost (variable + fixed); MC values it at variable production cost only","MC, not AC, is the basis required for statutory external financial reporting under IAS 2","A pre-determined OAR is used partly to smooth out seasonal fluctuations in overhead cost and allow unit costs to be calculated quickly throughout the year"],
+ correctAnswers:[true,false,true],
+ explanation:"1: TRUE — this is the core valuation difference between the two systems. 2: FALSE — it's the other way round: IAS 2 requires ABSORPTION costing for external reporting, precisely because it includes a fair share of fixed production overhead in inventory. 3: TRUE — using a predetermined (budgeted) rate rather than waiting for actual figures lets a business cost units in real time, at the cost of some under/over-absorption needing correcting later."},
+
+{id:"c1q8",num:"8",source:"Original",topic:"AC vs MC",type:"long",
+ stem:"Absorption costing is often criticised for giving less useful decision-making information than marginal costing. Explain why a SMALL organisation might still reasonably choose to use absorption costing for its internal job-costing and pricing.",
+ modelAnswer:"In a small organisation without sophisticated costing systems, absorbing a share of fixed overhead into each job or product is often the simplest practical way to estimate a full job cost and set a cost-plus price, giving a workable estimate of profit per job without running two separate systems (one for costing, one for decisions). Even though the fixed-overhead allocation is somewhat arbitrary and less useful for short-term marginal decisions than contribution-based analysis, for a small business the simplicity and the fact that it naturally builds in overhead recovery (so prices aren't set too low to cover the business's real costs) often outweighs that drawback."},
+
+{id:"c1q9",num:"9",source:"Original",topic:"Absorption Costing",type:"numeric",tolerance:1,
+ stem:"A company absorbs fixed production overhead at $60/unit, based on budgeted monthly output of 750 units (budgeted fixed overhead = $45,000/month). Actual output for April was 700 units, and actual fixed overhead incurred was $37,000. What is the AMOUNT of the under/over-absorption for April (enter as a positive number)?",
+ correct:"5000",
+ explanation:"Overhead absorbed = actual output × OAR = 700 × $60 = $42,000. Actual overhead = $37,000. Absorbed exceeds actual, so overhead is <b>over-absorbed by $5,000</b> — production was lower than budgeted (700 vs 750), but the fixed OAR still absorbed more than was actually spent because actual spend was well under budget too."},
+
+{id:"c1q10",num:"10",source:"Original",topic:"Absorption Costing",type:"mcq",
+ stem:"A company's actual production volume is LOWER than budgeted for the period, while actual fixed overhead spend exactly equals the budgeted amount. What is the result?",
+ options:["Under-absorption, caused by the shortfall in volume","Over-absorption, caused by the shortfall in volume","No under- or over-absorption occurs","Cannot be determined without the actual OAR"], correct:0,
+ explanation:"The OAR is set using BUDGETED volume. If actual output falls short of that budgeted volume, fewer units are produced to 'carry' the fixed overhead via the rate — so even with spending exactly on budget, the total amount absorbed (actual units × OAR) comes in below the budgeted overhead, meaning the shortfall is <b>under-absorption caused by volume</b>, not by spending."},
+
+{id:"c1q11",num:"11",source:"Original",topic:"Absorption Costing",type:"mcq",
+ stem:"Which of the following is a genuine ADVANTAGE of absorption costing over marginal costing?",
+ options:["Profit is a function of sales only, never production volume","It complies with IAS 2 for external financial reporting purposes, since it includes a fair share of fixed overhead in inventory value","There is no need to apportion any fixed overheads to units of production","It is always a more accurate basis than marginal costing for short-term decision-making"], correct:1,
+ explanation:"IAS 2 compliance is absorption costing's standout genuine advantage — it's the reason companies must use AC (not MC) for their statutory financial statements. The other three options are either backwards (A and C describe marginal costing) or simply false (D — marginal costing is normally considered MORE useful for short-term decisions, not less)."},
+
+{id:"c1q12",num:"12",source:"Original",topic:"AC vs MC",type:"mcq",
+ stem:"Which type of organisation is LEAST suited to using standard costing (and therefore to a standard-cost-based absorption costing system)?",
+ options:["A retail bank processing repetitive standard transactions","A food manufacturer producing standardised, repeat products","A bespoke kitchen designer producing unique, customer-specified jobs","None of the above — all are equally suited"], correct:2,
+ explanation:"Standard costing depends on repetitive, standardised output so that a 'standard' cost per unit is meaningful. A bespoke kitchen designer works on unique, customer-specified jobs with no two the same — there's no standard unit to set a cost against. A bank and a food manufacturer both have genuinely repetitive output (transactions, standard product batches), so standard costing suits them well."}
+    ]
+  },
+  {
+    id:"ch2",
+    label:"Chapter 2 — Management Information Systems",
+    locked:false,
+    footer:"Merged from the BPP Practice Kit (Q1, Q5–10, full original wording) and the Kaplan Exam Kit's MIS section (Q18–21) plus two Study Text Test-Your-Understanding exercises. The Kaplan Q18–21 items are reconstructed from the answer key — the OCR text for this section only cleanly preserved the answers, not every original question stem — so treat those four as faithful-to-the-answer reconstructions rather than verbatim originals.",
+    questions:[
+{id:"c2q1",num:"5",source:"BPP Practice Kit",topic:"Nature of MI",type:"tfgroup",
+ stem:"Are the following statements about management information systems TRUE or FALSE?",
+ statements:["They are designed to report on existing operations","They have an external focus"],
+ correctAnswers:[true,false],
+ explanation:"Management information systems report on existing operations for management control purposes, and their data comes mainly from INTERNAL sources — an external focus is more characteristic of an Executive Information System, which pulls in outside data too."},
+
+{id:"c2q2",num:"6",source:"BPP Practice Kit",topic:"Nature of MI",type:"mcq",
+ stem:"Which of the following statements about operational control is/are TRUE?<br>(1) Budgeting is commonly associated with decision-making at the operational planning level.<br>(2) Operational control decisions are, in general, more narrowly focused and have a shorter time horizon than management control decisions.",
+ options:["1 only","2 only","Neither 1 nor 2","Both 1 and 2"], correct:1,
+ explanation:"(1) is FALSE — budgeting is normally associated with the TACTICAL/management control level, not operational control. (2) is TRUE — operational decisions (e.g. today's production schedule) are narrower and shorter-term than management control decisions (e.g. this month's variance review). Only (2) survives."},
+
+{id:"c2q3",num:"7",source:"BPP Practice Kit",topic:"Information Systems Types",type:"mcq",
+ stem:"Which term describes an information system that gives senior executives online access to important information from BOTH internal and external sources?",
+ options:["Executive information system","Enterprise resource planning system","Management information system","Transaction processing system"], correct:0,
+ explanation:"That's the defining feature of an Executive Information System (EIS) — it deliberately blends internal data with external market/competitor information so senior management can model the whole business, not just look inward."},
+
+{id:"c2q4",num:"8",source:"BPP Practice Kit",topic:"Data Security & Controls",type:"mcq",
+ stem:"A company's HR director lent their username and password to a junior employee to cover routine database maintenance while on vacation. The junior employee then used those credentials to access and leak confidential board salary records. Which control could have helped PREVENT this specific breach?",
+ options:["Monitoring the database system logs daily to see what information is being accessed","Building levels of access into the database so only senior staff can see board records","Keeping all HR salary records on a separate server","Having a policy of regularly updating the passwords required to access the system"], correct:0,
+ explanation:"Regular log monitoring would have flagged that the HR director's account was active while they were away, and that salary records were being accessed and copied — enabling early investigation. The other options address different weaknesses (access levels, storage, password ageing) but wouldn't specifically have caught THIS misuse of legitimately shared, valid credentials in real time."},
+
+{id:"c2q5",num:"9",source:"BPP Practice Kit",topic:"Nature of MI",type:"mcq",
+ stem:"Which of the following is an example of UNSTRUCTURED data?",
+ options:["A data table showing monthly purchase figures","A spreadsheet analysis of annual sales","Email communications between a customer and the customer services department","A table of supplier names and addresses"], correct:2,
+ explanation:"Structured data sits neatly in fields within a database, spreadsheet or table — the other three options all qualify. Free-form email text doesn't fit a predefined field structure, making it the classic example of unstructured data."},
+
+{id:"c2q6",num:"10",source:"BPP Practice Kit",topic:"Nature of MI",type:"mcq",
+ stem:"Which of the following statements about information systems is/are TRUE?<br>(1) Management information is often produced as summary output from a transaction processing system.<br>(2) The data used in management information systems comes mainly from sources INTERNAL to the organisation.",
+ options:["1 only","2 only","Neither 1 nor 2","Both 1 and 2"], correct:3,
+ explanation:"Both are true. A TPS captures the raw day-to-day transactions, and an MIS typically summarises exactly that internally-generated data into periodic management reports — it isn't primarily built on external sources."},
+
+{id:"c2q7",num:"—",source:"BPP Practice Kit",topic:"Data Security & Controls",type:"tfgroup",
+ stem:"Do the following controls help to ensure the SECURITY of highly confidential information?",
+ statements:["Logical access controls","Database controls","Hierarchical passwords","Range checks"],
+ correctAnswers:[true,true,true,false],
+ explanation:"Logical access controls, database controls, and hierarchical (tiered) passwords all restrict WHO can see confidential data — genuine security controls. Range checks are a data-validation control (catching an out-of-range input value, e.g. a negative quantity) — they're about data ACCURACY, not confidentiality or security."},
+
+{id:"c2q8",num:"—",source:"BPP Practice Kit",topic:"Nature of MI",type:"mcq",
+ stem:"Which combination of options best describes the PURPOSES of management information?",
+ options:["Planning, control and decision making","Planning, negotiating and decision making","Decision-making, negotiating and implementing","Control, decision-making and publication"], correct:0,
+ explanation:"The textbook trio is planning, control, and decision-making — management information exists to help managers set plans, monitor and control performance against them, and make better decisions. Negotiating, implementing and publication aren't standard purposes of MI in this context."},
+
+{id:"c2q9",num:"18",source:"Kaplan Exam Kit",topic:"Information Systems Types",type:"mcq",
+ stem:"Which of the following is TRUE about how well information systems suit different levels of management?",
+ options:["An Executive Information System suits all levels of management equally","A Customer Relationship Management system is equally useful at strategic, tactical and operational levels","None of an MIS, a CRM system, or an EIS is suited to ALL levels of management equally — each has a natural 'home' level","A Transaction Processing System is best suited to strategic planning"], correct:2,
+ explanation:"Each system has a level it's built for: an MIS naturally serves tactical/management control, a CRM system's day-to-day operation sits mainly at the operational level even though its data informs strategy too, and an EIS is built for senior executives at the strategic level. None of them is genuinely 'one size fits all' across every management level."},
+
+{id:"c2q10",num:"19",source:"Kaplan Exam Kit",topic:"Information Systems Types",type:"mcq",
+ stem:"Which of the following is LEAST likely to be a direct benefit of introducing an Enterprise Resource Planning (ERP) system?",
+ options:["Elimination of duplicated or inconsistent data held across different departments","Faster, more integrated processing of transactions across the business","Better real-time visibility of information across different functions","Automatic tracking and summarising of critical strategic information for the board"], correct:3,
+ explanation:"Tracking and summarising critical STRATEGIC information for the board is the job of an Executive Information System, not a core ERP benefit. ERP's real strengths are integration and consistency of operational data across departments — the other three options."},
+
+{id:"c2q11",num:"20",source:"Kaplan Exam Kit",topic:"Information Systems Types",type:"mcq",
+ stem:"A company wants ONE system that gives senior executives drill-down access to both internal and external information, to support strategic modelling of the whole business. Which system are they describing?",
+ options:["A Customer Relationship Management system", "An Enterprise Resource Planning system", "A Management Information System", "An Executive Information System"], correct:3,
+ explanation:"That's an Executive Information System (EIS) by definition — internal AND external data, drill-down capability, aimed at strategic-level modelling. A CRM system focuses on customer relationships, an ERP system integrates operational processes, and an MIS produces routine tactical-level reports."},
+
+{id:"c2q12",num:"21",source:"Kaplan Exam Kit",topic:"Information Systems Types",type:"mcq",
+ stem:"A weekly report comparing actual and budgeted costs for a production department, sent to that department's supervisor, is a typical output of which type of information system?",
+ options:["Transaction processing system","Management information system","Executive information system","Enterprise resource planning system"], correct:1,
+ explanation:"A routine, periodic variance-style report aimed at a tactical-level manager (a department supervisor) is exactly what a Management Information System is built to produce — this is MIS's bread-and-butter output."},
+
+{id:"c2q13",num:"TYU6",source:"Kaplan Study Text",topic:"Information Systems Types",type:"mcq",
+ stem:"Match each description to the correct system: A) Customer relationship management system B) Transaction processing system C) Executive information system D) Management information system.<br>Which system (i) converts information about basic transactions into information that helps TACTICAL managers control the organisation?",
+ options:["Customer relationship management system (A)","Transaction processing system (B)","Executive information system (C)","Management information system (D)"], correct:3,
+ explanation:"This is the MIS's defining role — taking raw transaction data and turning it into tactical, management-control-level information. (Note: this question uses the multi-select format here for a single correct pick — treat it as choosing the one right match.)"},
+
+{id:"c2q13b",num:"TYU6",source:"Kaplan Study Text",topic:"Information Systems Types",type:"mcq",
+ stem:"Same matching exercise: which system PROVIDES internal and external information to strategic managers, enabling modelling of the entire business?",
+ options:["Customer relationship management system","Transaction processing system","Executive information system","Management information system"], correct:2,
+ explanation:"That's an Executive Information System — the only one of the four built specifically for whole-business strategic modelling using both internal and external data."},
+
+{id:"c2q14",num:"TYU7",source:"Kaplan Study Text",topic:"Information Systems Types",type:"mcq",
+ stem:"A business has installed an information system that allows historical analysis of business results, as well as creation of budgets and predictions about future operations. What type of information system has it installed?",
+ options:["A transaction processing system","An enterprise resource planning system","A management information system","A customer relationship management system"], correct:2,
+ explanation:"Historical analysis plus budgeting/forecasting support is a classic Management Information System capability — computer-based methods for analysis, forecasts and simulations aimed at management control."},
+
+{id:"c2q15",num:"TYU3",source:"Kaplan Study Text",topic:"Information Systems Types",type:"mcq",
+ stem:"AFT plc's board wants a system that processes both internal AND external information to support strategic decision-making across the whole business. Which system are they describing?",
+ options:["Transaction processing system","Executive information system","Management information system","Enterprise resource planning system"], correct:1,
+ explanation:"Internal + external data, aimed squarely at strategic decisions — that's an Executive Information System (EIS), the same pattern tested repeatedly in this topic area."},
+
+{id:"c2q16",num:"TYU4",source:"Kaplan Study Text",topic:"Information Systems Types",type:"mcq",
+ stem:"Which statement(s) about Management Information Systems (MIS) are TRUE?<br>(1) MIS typically include complex mathematical models and statistical analysis.<br>(2) MIS typically produce simple summary reports to support management control.",
+ options:["1 only","2 only","Both 1 and 2","Neither 1 nor 2"], correct:1,
+ explanation:"(1) is FALSE — complex mathematical modelling and statistical analysis is more the territory of a Decision Support System or data analytics tools, not a standard MIS. (2) is TRUE — an MIS's core job is producing straightforward summary reports for management control. Only (2) survives."}
+    ]
+  },
+  {
+    id:"ch3",
+    label:"Chapter 3 — Information Systems & Data Analytics",
+    locked:false,
+    footer:"Merged from the Kaplan Exam Kit's Big Data section (Q23–28, verbatim) and the BPP Practice Kit's parallel big-data/DIKW questions.",
+    questions:[
+{id:"c3q1",num:"23",source:"Kaplan Exam Kit",topic:"Big Data Characteristics",type:"mcq",
+ stem:"Which of the following is NOT normally considered to be a feature (a 'V') of big data?",
+ options:["Volume","Velocity","Variety","Vicinity"], correct:3,
+ explanation:"Volume, Velocity and Variety (plus Veracity and Value) are the standard 'V's of big data. 'Vicinity' isn't one of them — it's not a term normally associated with big data at all."},
+
+{id:"c3q2",num:"24",source:"Kaplan Exam Kit",topic:"Big Data Characteristics",type:"multi",
+ stem:"Which TWO of the following statements regarding big data are TRUE?",
+ options:["It is more reliable than other sources of data","It can change very quickly","It can take multiple forms","It involves dealing with large financial numbers"],
+ correctIndices:[1,2],
+ explanation:"Velocity (it's created and can change very quickly) and Variety (it can take multiple forms — text, images, sensor data etc.) are genuine 'V' characteristics. Reliability is actually a WEAKNESS of big data (its Veracity is often hard to assess, not automatically higher than other sources), and big data isn't about financial numbers specifically or numbers being 'big' in size."},
+
+{id:"c3q3",num:"25",source:"Kaplan Exam Kit",topic:"Big Data Benefits & Risks",type:"mcq",
+ stem:"Which of the following statements regarding big data is TRUE?",
+ options:["It is only useful for big organisations","It is all contained on the internet","It is all generated external to the organisation","It can lead to a competitive advantage"], correct:3,
+ explanation:"Used well, big data helps an organisation understand customer tastes, market shifts and supply-chain risks faster than rivals — a genuine competitive advantage. It's useful for organisations of any size (even a small business's social media data counts), it isn't limited to internet-based data, and plenty of it is generated INTERNALLY (e.g. unstructured customer data a company already holds)."},
+
+{id:"c3q4",num:"26",source:"Kaplan Exam Kit",topic:"Big Data Benefits & Risks",type:"mcq",
+ stem:"Which of the following statements about big data and decision-making is/are TRUE?<br>(i) Decisions that include big data analytics can lead to a competitive edge over rivals.<br>(ii) Big data analytics cannot account for competitors' expected actions.",
+ options:["Statement (i) only","Statement (ii) only","Both statements","Neither statement"], correct:0,
+ explanation:"(i) is TRUE — reacting faster than rivals using big data insight is a genuine edge. (ii) is actually FALSE — competitors' actions CAN be accounted for, by analysing data on rivals such as their public announcements and market signals. Only (i) survives."},
+
+{id:"c3q5",num:"27",source:"Kaplan Exam Kit",topic:"Big Data Benefits & Risks",type:"multi",
+ stem:"Which TWO of the following statements are thought to be genuine BENEFITS of using big data to enhance business decisions?",
+ options:["There is no need to have a deep understanding of the industry in order to interpret the data","Customer relationship management can be improved, resulting in better repeat business and customer loyalty","Business performance can be better tracked and analysed against a wider set of criteria","All available big data will create value for an organisation when analysed"],
+ correctIndices:[1,2],
+ explanation:"Improved CRM/customer loyalty and better-tracked performance against wider criteria are genuine benefits. The other two are traps: big data still needs deep industry understanding to interpret correctly, and analysing ALL available big data is neither realistic (hugely expensive) nor useful — much of it won't be relevant to a given organisation."},
+
+{id:"c3q6",num:"28",source:"Kaplan Exam Kit",topic:"Big Data Benefits & Risks",type:"mcq",
+ stem:"Which of the following is NOT considered a risk when using big data to enhance business decision making?",
+ options:["The veracity of the data is difficult to assess","Traditional sources of data are ignored","The data may be distorted by data outliers","The benefits may be outweighed by the financial costs"], correct:1,
+ explanation:"Big data should be used ALONGSIDE traditional data sources (economic data, sales trends, etc.), not instead of them — there's no inherent reason traditional sources have to be ignored, so this isn't a genuine 'risk of big data' the way the other three are (data reliability, outlier distortion, and cost-benefit concerns are all real, well-documented risks)."},
+
+{id:"c3q7",num:"23",source:"BPP Practice Kit",topic:"Data & DIKW",type:"mcq",
+ stem:"On the data/information/knowledge/wisdom (DIKW) pyramid, which level does a Transaction Processing System correspond to?",
+ options:["Data","Information","Knowledge","Wisdom"], correct:0,
+ explanation:"A TPS captures raw, unprocessed records of individual transactions — the most basic level of the pyramid: Data. Moving up, a Management Information System turns that into Information, a Decision Support System into Knowledge, and an Expert System into Wisdom."},
+
+{id:"c3q8",num:"23",source:"BPP Practice Kit",topic:"Data & DIKW",type:"mcq",
+ stem:"On the data/information/knowledge/wisdom (DIKW) pyramid, which level does an Expert System correspond to?",
+ options:["Data","Information","Knowledge","Wisdom"], correct:3,
+ explanation:"An Expert System sits at the top of the pyramid — Wisdom — since it applies accumulated expertise and judgement to make recommendations, rather than just presenting facts or patterns."},
+
+{id:"c3q9",num:"24",source:"BPP Practice Kit",topic:"Data & DIKW",type:"mcq",
+ stem:"Which of the following statements about Enterprise Resource Planning (ERP) systems is/are TRUE?<br>(1) ERP systems use complex computer systems, usually comprehensive databases, to provide plans for every aspect of the business.<br>(2) ERP systems are accounting-oriented information systems that help identify and plan the enterprise-wide resources needed to resource, make, account for and deliver customer orders.",
+ options:["1 only","2 only","Both 1 and 2","Neither 1 nor 2"], correct:2,
+ explanation:"Both statements are genuinely true descriptions of ERP systems — comprehensive, database-driven planning across the whole business, with a strong accounting/resourcing orientation tied to fulfilling customer orders."},
+
+{id:"c3q10",num:"25",source:"BPP Practice Kit",topic:"Big Data Benefits & Risks",type:"multi",
+ stem:"Which TWO of the following are genuine RISKS of using big data?",
+ options:["Veracity of data used","Volume of data used","Security of data collected","The use of real-time data"], correctIndices:[0,2],
+ explanation:"Veracity (is the data valid/reliable?) and security/privacy of the data collected are the genuine risks here. Volume is simply one of big data's defining characteristics, not a risk in itself, and using real-time data is generally presented as a BENEFIT of big data, not a risk."},
+
+{id:"c3q11",num:"26",source:"BPP Practice Kit",topic:"Data & DIKW",type:"mcq",
+ stem:"Which of the following controls is used to ensure the ACCURACY of data (e.g. that a credit card number has the correct number of digits)?",
+ options:["Dial-back","Firewall","Encryption","Validation"], correct:3,
+ explanation:"Validation checks data against defined rules to catch input errors — exactly the kind of check that would catch a credit card number with the wrong digit count. Dial-back, firewalls and encryption are all SECURITY measures (controlling access/protecting data in transit), not accuracy checks."},
+
+{id:"c3q12",num:"27",source:"BPP Practice Kit",topic:"Big Data Benefits & Risks",type:"multi",
+ stem:"Which TWO of the following are genuine ways that big data can be used to IMPROVE performance?",
+ options:["Reducing the number of data analysts (reducing labour costs)","Stocking products that customers actually want (increasing sales)","Being able to apply targeted advertising (increasing sales)","Costs saved by collecting less data (reducing costs)"], correctIndices:[1,2],
+ explanation:"Better stock decisions and targeted advertising are genuine, sales-driven performance improvements from big data. The other two are traps — big data analysis needs SKILLED analysts (cutting their numbers would hurt, not help), and the whole point of big data is collecting and using MORE data, not less."},
+
+{id:"c3q13",num:"28",source:"BPP Practice Kit",topic:"Big Data Benefits & Risks",type:"tfgroup",
+ stem:"Are the following statements about big data and data analytics TRUE or FALSE?",
+ statements:["Big data can be used to provide insights into costs","Social media is a source of big data","Predictive analytics is a branch of data analytics"],
+ correctAnswers:[true,true,true],
+ explanation:"All three are true: big data can reveal cost patterns and support predictions of future costs; social media is a genuinely rich, commonly-cited source of big data; and predictive analytics — using data to forecast future outcomes — is indeed a recognised branch of data analytics."},
+
+{id:"c3q14",num:"30",source:"BPP Practice Kit",topic:"Big Data Benefits & Risks",type:"tfgroup",
+ stem:"Are the following statements about big data analytics TRUE or FALSE?",
+ statements:["It enables large quantities of data to be examined quickly","It improves organisational decision-making","It enables cost reduction","It requires adherence to data privacy laws"],
+ correctAnswers:[true,true,true,true],
+ explanation:"All four are genuinely true of big data analytics: speed at scale, better-informed decisions, cost-reduction insight, and — because so much personal/customer data is involved — a real legal obligation to comply with data privacy legislation."}
+    ]
+  },
+  {
+    id:"ch4",
+    label:"Chapter 4 — Advanced Costing Methods",
+    locked:false,
+    footer:"Kaplan Exam Kit Q30–Q71 (Section A) merged with distinct BPP Practice Kit questions on the same topics. Section B case studies and Section C constructed-response questions are next.",
+    questions:[
+{id:"k30",num:"30",source:"Kaplan Exam Kit",topic:"ABC",type:"mcq",
+ stem:"A company inspects batches of two products. <b>Alpha</b>: annual output 2,500 units, batch size 500 units, 4 inspections per batch. <b>Zeta</b>: annual output 8,000 units, batch size 1,000 units, 1 inspection per batch. Total inspection cost for the year is $250,000, absorbed using ABC based on number of inspections. What is the inspection cost per unit of Alpha (2dp)?",
+ options:["$23.81","$17.24","$71.43","$80.00"], correct:2,
+ explanation:"Alpha batches = 2,500/500 = 5 → inspections = 5×4 = 20. Zeta batches = 8,000/1,000 = 8 → inspections = 8×1 = 8. Total inspections = 28. Rate = $250,000 ÷ 28 = $8,928.57/inspection. Alpha's total = 20 × $8,928.57 = $178,571. Per unit = $178,571 ÷ 2,500 = <b>$71.43</b>."},
+
+{id:"k31",num:"31",source:"Kaplan Exam Kit",topic:"ABC",type:"mcq",
+ stem:"Which of the following about ABC and cost drivers are TRUE?<br>(1) A cost driver is any factor that causes a change in the cost of an activity.<br>(2) For long-run variable overhead costs, the cost driver is the volume of activity.<br>(3) Traditional absorption costing tends to under-allocate overhead costs to low-volume products.",
+ options:["(1) and (3) only","(2) and (3) only","(1) and (2) only","(1), (2) and (3)"], correct:3,
+ explanation:"All three are correct. (1) is the textbook definition of a cost driver. (2) holds for long-run variable overheads. (3) is also true — traditional AC spreads support costs on volume alone, so it systematically under-costs low-volume, high-complexity products relative to ABC."},
+
+{id:"k32",num:"32",source:"Kaplan Exam Kit",topic:"ABC",type:"numeric",tolerance:0.01,
+ stem:"A company makes products A and B, experimenting with ABC. Set-up costs are $12,000. Total production is 20,000 units each of A and B. Each run is 1,000 units of A, or 5,000 units of B. Using ABC, what is the set-up cost per unit of A (nearest cent)?",
+ correct:"0.50",
+ explanation:"Runs of A = 20,000/1,000 = 20. Runs of B = 20,000/5,000 = 4. Total runs = 24. Rate = $12,000 ÷ 24 = $500/run. Cost for A = 20 × $500 = $10,000 ÷ 20,000 units = <b>$0.50</b>."},
+
+{id:"k33",num:"33",source:"Kaplan Exam Kit",topic:"ABC",type:"mcq",
+ stem:"Which statement(s) about ABC are TRUE?<br>(1) A cost pool is an activity that consumes resources and to which overhead costs are allocated.<br>(2) An ABC overhead absorption rate is calculated the same way as a traditional OAR, and gives the SAME rate for every cost pool.",
+ options:["(1) only","(2) only","Neither (1) nor (2)","Both (1) and (2)"], correct:0,
+ explanation:"(1) is a correct definition of a cost pool. (2) is false — each cost pool gets a <i>different</i> rate (cost pool ÷ its own driver volume) — that's the entire point of ABC versus a single blanket OAR."},
+
+{id:"k34",num:"34",source:"Kaplan Exam Kit",topic:"ABC",type:"numeric",tolerance:0.01,
+ stem:"A company uses ABC. Period 3 set-up costs are $84,000. Total production is 40,000 units each of A and B. Each run is 2,000 units of A, or 5,000 units of B. What is the set-up cost per unit of B (2dp)?",
+ correct:"0.60",
+ explanation:"Runs A = 40,000/2,000 = 20. Runs B = 40,000/5,000 = 8. Total = 28. Rate = $84,000 ÷ 28 = $3,000/run. Cost for B = 8 × $3,000 = $24,000 ÷ 40,000 = <b>$0.60</b>."},
+
+{id:"k35",num:"35",source:"Kaplan Exam Kit",topic:"ABC",type:"numeric",tolerance:0.01,
+ stem:"ABC Company makes Alpha (low-volume, 1,200 units/yr) and Beta (high-volume, 12,000 units/yr), both labour-intensive, both using 5 labour hours/unit. Purchase orders: Alpha 75, Beta 85 (total 160). Set-ups: Alpha 40, Beta 60 (total 100). Total fixed overheads $420,000. Using a <b>traditional</b> labour-hour OAR, what is the overhead cost per unit of Alpha (2dp)?",
+ correct:"31.82",
+ explanation:"Total labour hours = (1,200+12,000)×5 = 66,000. OAR = $420,000 ÷ 66,000 = $6.36/hr. Alpha: 5hrs × $6.36 = <b>$31.82</b>/unit."},
+
+{id:"k36",num:"36",source:"Kaplan Exam Kit",topic:"ABC",type:"mcq",
+ stem:"Same data as Q35. Using the <b>traditional</b> labour-hour OAR, what is the overhead cost per unit of <b>Beta</b>?",
+ options:["$6.36","$22.75","$31.82","$122.55"], correct:2,
+ explanation:"Since Alpha and Beta both use 5 labour hours/unit, and traditional costing absorbs overhead purely on labour hours, Beta's overhead/unit is <i>identical</i> to Alpha's: 5 × $6.36 = <b>$31.82</b>. This is exactly the distortion ABC exists to fix."},
+
+{id:"k37",num:"37",source:"Kaplan Exam Kit",topic:"ABC",type:"mcq",
+ stem:"Same data as Q35. Using ABC (Volume-related $100,000 ÷ 66,000 labour hrs; Purchasing $145,000 ÷ 160 orders; Set-up $175,000 ÷ 100 set-ups), what is the overhead cost per unit of <b>Alpha</b>?",
+ options:["$6.36","$22.75","$122.55","Cannot be determined without more information"], correct:2,
+ explanation:"Volume rate = $100,000/66,000 = $1.515/hr → Alpha (6,000hrs) = $9,090.91. Purchasing rate = $145,000/160 = $906.25/order → Alpha (75 orders) = $67,968.75. Set-up rate = $175,000/100 = $1,750/set-up → Alpha (40 set-ups) = $70,000. Total = $147,059.66 ÷ 1,200 units = <b>$122.55</b> — nearly 4× the traditional figure of $31.82."},
+
+{id:"bpp36",num:"36",source:"BPP Practice Kit",topic:"ABC",type:"mcq",
+ stem:"Which of the following statements about activity-based costing is TRUE?",
+ options:["The cost driver for quality inspection is likely to be batch size","The cost driver for materials handling and despatch costs is likely to be the number of orders handled","In the short run, all overhead costs for an activity vary with the amount of that activity's cost driver","A cost driver is itself an activity-based cost"], correct:1,
+ explanation:"Materials handling & despatch costs are genuinely driven by the number of orders handled. Quality inspection's driver is usually the number of units or batches produced — not the batch SIZE itself. Not all overhead costs within an activity vary with its driver (some remain fixed). And a cost driver measures activity volume — it isn't a cost in itself."},
+
+{id:"bpp41",num:"41",source:"BPP Practice Kit",topic:"ABC",type:"mcq",
+ stem:"Which of the following statements about traditional absorption costing (AC) and ABC are TRUE?<br>(1) Traditional AC may be used to set prices, but ABC cannot.<br>(2) Traditional AC tends to allocate too many overhead costs to low-volume products and not enough to high-volume products.<br>(3) Implementing ABC is expensive and time-consuming.",
+ options:["1 only","2 only","1, 2 and 3","3 only"], correct:3,
+ explanation:"(1) is false — either system can underpin cost-plus pricing. (2) is false and is actually the OPPOSITE of reality — traditional AC under-allocates to low-volume products and over-allocates to high-volume ones (the whole reason ABC exists!). Only (3) is genuinely true."},
+
+{id:"bpp59",num:"59",source:"BPP Practice Kit",topic:"ABC",type:"multi",
+ stem:"Which TWO of the following statements about ABC are TRUE?",
+ options:["ABC recognises the complexity of modern manufacturing through the use of multiple cost drivers","ABC establishes separate cost pools for support activities","ABC reapportions support activity costs to production cost centres","ABC is an appropriate costing system whenever overheads vary with time spent on production"],
+ correctIndices:[0,1],
+ explanation:"ABC's defining features: multiple cost drivers, and separate cost pools per support activity. ABC does NOT 'reapportion' costs the way traditional AC does via arbitrary bases — it traces them directly via drivers. And ABC isn't specifically justified by overheads varying with production time."},
+
+{id:"bppjolasteps",num:"73",source:"BPP Practice Kit",topic:"ABC",type:"long",
+ stem:"Jola Publishing Co is introducing ABC. Put these 5 steps into the correct order: <i>Calculate the absorption rate for each cost driver · Calculate the overhead cost per unit of each product · Determine what causes the cost of each activity (the cost driver) · Identify major activities within each department that create cost · Create a cost centre/cost pool for each activity</i>",
+ modelAnswer:"1) Identify major activities within each department that create cost → 2) Create a cost centre/cost pool for each activity → 3) Determine the cost driver for each activity → 4) Calculate the absorption rate for each cost driver → 5) Calculate the overhead cost per unit of each product."},
+
+{id:"bppjola74",num:"74",source:"BPP Practice Kit",topic:"ABC",type:"longcalc",tolerance:500,
+ stem:"Jola Publishing Co makes CB (1,000,000 units/year, 6 machine minutes/unit) and TJ (10,000 units/month × 12 = 120,000 units/year, 10 machine minutes/unit). The Production costs cost pool is driven by machine hours, at a rate of $18/machine hour. What is the TOTAL activity-based apportionment of production costs to the CB? (Feel free to paste your workings below.)",
+ correct:"1800000",
+ explanation:"CB machine hours = 1,000,000 units × 6 mins ÷ 60 = 100,000 hours. Apportionment = 100,000 × $18 = <b>$1,800,000</b>."},
+
+{id:"bppjola75",num:"75",source:"BPP Practice Kit",topic:"ABC",type:"longcalc",tolerance:50,
+ stem:"Continuing Jola Publishing Co: the Quality control cost pool is driven by number of inspections (200 total: 180 for CB + 20 for TJ), giving a rate of $3,340 per inspection. What is the TOTAL activity-based apportionment of quality control overheads to the TJ (20 inspections)?",
+ correct:"66800",
+ explanation:"TJ's quality control cost = 20 inspections × $3,340 = <b>$66,800</b>."},
+
+{id:"k41",num:"41",source:"Kaplan Exam Kit",topic:"Target Costing",type:"mcq",
+ stem:"A company operates in a highly competitive industry with demanding shareholders, and has identified a target cost gap. Which is an appropriate strategy to close the gap?",
+ options:["Increase the selling price","Reduce the expectation gap by lowering the selling price","Reduce the desired profit margin on the product","Mechanise production to reduce the average production cost"], correct:3,
+ explanation:"Raising price isn't viable competitively. Lowering price only worsens the gap. Cutting margin won't satisfy demanding shareholders. The only genuine gap-closer is reducing the actual production cost."},
+
+{id:"k42",num:"42",source:"Kaplan Exam Kit",topic:"Target Costing",type:"mcq",
+ stem:"Which of the following is an IMMEDIATELY acceptable way to close an identified target cost gap?",
+ options:["Reduce the desired margin without consulting the owners","Reduce the predicted selling price","Source similar-quality materials from another supplier at a lower cost","Increase the predicted selling price"], correct:2,
+ explanation:"The market-set price can't be changed by the company, and cutting margin unilaterally needs stakeholder agreement. Sourcing cheaper, still-acceptable materials is a genuine, immediately-actionable cost reduction."},
+
+{id:"k43",num:"43",source:"Kaplan Exam Kit",topic:"Target Costing",type:"numeric",tolerance:0.01,
+ stem:"Predicted selling price $56/unit; required mark-up on cost 25%. Estimated material cost $16, before a 20% shrinkage loss (10kg input → 8kg usable output). Labour is the only other cost, needing 2 hours/unit. What is the MAXIMUM hourly labour rate the business can pay without creating a cost gap?",
+ correct:"12.40",
+ explanation:"Target cost = $56 ÷ 1.25 = $44.80. Material cost after shrinkage = $16 × 10/8 = $20. Remaining for labour = $44.80 − $20 = $24.80 for 2 hours → <b>$12.40</b>/hour."},
+
+{id:"k44",num:"44",source:"Kaplan Exam Kit",topic:"Target Costing",type:"long",
+ stem:"Four techniques sometimes get confused with target costing's gap-closing toolkit: <i>variance analysis, value analysis, functional analysis, activity analysis</i>. Which ONE is LEAST relevant to closing a target cost gap, and why?",
+ modelAnswer:"Variance analysis is the odd one out. It's a feedback control tool used <i>during</i> live production (comparing actual vs standard cost after the fact) — but target costing is a feedforward technique used <i>before</i> production starts. Value analysis, functional analysis and activity analysis are all genuinely useful gap-closing tools; variance analysis isn't, because by the time you're measuring variances, the cost-gap decision is already history."},
+
+{id:"k45",num:"45",source:"Kaplan Exam Kit",topic:"Target Costing",type:"mcq",
+ stem:"A company plans to sell 500 units at $250/unit and requires a 15% return on a $250,000 investment. What is the target cost PER UNIT?",
+ options:["$213","$194","$187","$175"], correct:3,
+ explanation:"Sales revenue = 500×$250 = $125,000. Required ROI = 15%×$250,000 = $37,500. Total cost allowed = $87,500. Target cost/unit = $87,500÷500 = <b>$175</b>."},
+
+{id:"k46",num:"46",source:"Kaplan Exam Kit",topic:"Target Costing",type:"mcq",
+ stem:"An optician's eye test is produced and consumed by the patient at the exact same moment — there's no time lag and no chance to 'fix' the service before the patient experiences it. Which SHIP characteristic does this illustrate?",
+ options:["Heterogeneity","Intangibility","Perishability","Simultaneity (inseparability)"], correct:3,
+ explanation:"This is Simultaneity (inseparability) — production and consumption happen at once, with no chance to inspect or correct beforehand."},
+
+{id:"bppvc",num:"9",source:"BPP Practice Kit",topic:"Target Costing",type:"mcq",
+ stem:"VC Co is a firm of opticians. A standard appointment is 30 minutes, during which the optician assesses the patient and provides eye-care services on the spot. Which characteristic of services does this illustrate?",
+ options:["Tangible","Homogeneous","Non-perishable","Simultaneous"], correct:3,
+ explanation:"Delivered and consumed at the same time = simultaneous (inseparability). It's the opposite of tangible, homogeneous (heterogeneity means every appointment differs) and non-perishable (unused slots vanish forever — that's perishability)."},
+
+{id:"k47",num:"47",source:"Kaplan Exam Kit",topic:"Target Costing",type:"long",
+ stem:"Put these 6 stages of the target costing process into the CORRECT order: <i>Cost the product · Determine the profit margin · Develop the product concept · Identify the cost gap · Set the selling price · Use functional & value analysis</i>",
+ modelAnswer:"1) Develop the product concept → 2) Set the selling price (via market research) → 3) Determine the profit margin → 4) Cost the product → 5) Identify the cost gap → 6) Use functional and value analysis to close the gap. The selling price (step 2) always comes before costing the product (step 4) — the reverse logic that defines target costing."},
+
+{id:"k48",num:"48",source:"Kaplan Exam Kit",topic:"Life-Cycle Costing",type:"mcq",
+ stem:"A product has a 3-year life. Sales: 2,000/5,000/7,000 units in yrs 1/2/3. Variable production cost/unit: $2.30/$1.80/$1.20. Fixed production costs: $3,000/$3,500/$4,000. Variable selling cost/unit: $0.50/$0.40/$0.40. Fixed selling costs: $1,500/$1,600/$1,600. Admin costs: $700/yr each year. What is the life-cycle cost PER UNIT?",
+ options:["$2.81","$2.32","$3.22","$3.07"], correct:2,
+ explanation:"Variable production = $22,000. Variable selling = $5,800. Fixed production = $10,500. Fixed selling = $4,700. Admin = $2,100. Total = $45,100 ÷ 14,000 units = <b>$3.22</b>."},
+
+{id:"k49",num:"49",source:"Kaplan Exam Kit",topic:"Life-Cycle Costing",type:"mcq",
+ stem:"Product P lifetime data: Design costs (total) $800,000; direct manufacturing $20/unit; depreciation (total) $500,000; decommissioning (total) $20,000; machine hours 4/unit; production 300,000 units. Fixed production overheads are $72m/YEAR, absorbed on machine hours, with 96m machine hours budgeted/YEAR. What is the budgeted LIFE-CYCLE COST per unit?",
+ options:["$24.40","$25.73","$27.40","$22.73"], correct:2,
+ explanation:"OAR = $72m/96m = $0.75/hr. Manufacturing = $6,000,000. Design+depreciation+decommissioning = $1,320,000. Fixed OH absorbed = 300,000×4×$0.75 = $900,000. Total = $8,220,000 ÷ 300,000 = <b>$27.40</b>."},
+
+{id:"k50",num:"50",source:"Kaplan Exam Kit",topic:"Life-Cycle Costing",type:"mcq",
+ stem:"A games console maker's total life-cycle costs work out to $16,438,000 across 36,100 consoles made & sold, and customers will pay an average of only $420/console. The CEO claims: (1) the life-cycle cost per console is HIGHER than the $420 customers will pay. (2) More R&D spend early could reduce warranty costs later. Which statement(s) are TRUE?",
+ options:["(1) only","(2) only","Neither (1) nor (2)","Both (1) and (2)"], correct:3,
+ explanation:"Life-cycle cost/unit = $16,438,000 ÷ 36,100 = $455.35 — higher than $420, so (1) is TRUE. More upfront R&D generally reduces defects, lowering future warranty costs — (2) is also TRUE."},
+
+{id:"k51",num:"51",source:"Kaplan Exam Kit",topic:"Life-Cycle Costing",type:"multi",
+ stem:"Which FOUR of the following are genuine BENEFITS of life-cycle costing?",
+ options:["It provides the true financial cost of a product","The length of the life-cycle can be shortened","Expensive errors can be avoided, since potentially failing products can be spotted early","Lower costs can be achieved earlier by designing out costs","Better selling prices can be set","Decline stages of the life-cycle can be avoided"],
+ correctIndices:[0,2,3,4],
+ explanation:"The 4 genuine benefits: true financial cost; avoiding expensive errors; designing costs out earlier; better-informed selling prices. The other two are traps — you can't simply shorten the life-cycle or avoid decline at will."},
+
+{id:"k52",num:"52",source:"Kaplan Exam Kit",topic:"Life-Cycle Costing",type:"mcq",
+ stem:"Which statement(s) justify the USE of life-cycle costing?<br>(1) Life-cycles are getting shorter, so upfront costs matter more.<br>(2) Costs are increasingly weighted to the start, so must be matched against total revenues.<br>(3) High early R&D/design/marketing costs NECESSITATE a high initial selling price.<br>(4) Traditional capital budgeting doesn't try to minimise costs/maximise revenues over the whole life-cycle.",
+ options:["(1), (2) and (4) only","(2) and (3) only","(1) and (3) only","(1), (2), (3) and (4)"], correct:0,
+ explanation:"(1), (2) and (4) are true. (3) is FALSE — selling price is set by the market, not dictated by upfront costs; early sales might even run at a loss."},
+
+{id:"k53",num:"53",source:"Kaplan Exam Kit",topic:"Life-Cycle Costing",type:"mcq",
+ stem:"Which statement(s) about life-cycle costing are TRUE?<br>(1) LCC takes into account all costs EXCEPT sunk R&D costs.<br>(2) LCC ensures a profit is generated over the product's life.<br>(3) LCC is MOST useful for products with an EVEN weighting of costs across their life.",
+ options:["(1) and (3) only","(2) only","(2) and (3) only","(1), (2) and (3)"], correct:1,
+ explanation:"(1) is FALSE — LCC's whole point is that it DOES include R&D/design costs. (3) is FALSE — LCC adds the most value when costs are UNEVENLY weighted (heavy at the start). Only (2) survives."},
+
+{id:"k54",num:"54",source:"Kaplan Exam Kit",topic:"Life-Cycle Costing",type:"mcq",
+ stem:"Company B is developing a new product: forecast sales 20,000 units, suggested price $43/unit, required mark-up 40% on cost. Estimated lifetime costs: Design & development $43,000 (total); manufacturing $15/unit; plant decommissioning $30,000 (total). What is the life-cycle cost PER UNIT?",
+ options:["$18.65","$22","$22.87","$24"], correct:0,
+ explanation:"Total life-cycle cost = $43,000 + (20,000×$15) + $30,000 = $373,000 ÷ 20,000 = <b>$18.65</b>."},
+
+{id:"k55",num:"55",source:"Kaplan Exam Kit",topic:"Throughput Accounting",type:"mcq",
+ stem:"Demand exceeds supply. Which ONE action would INCREASE the throughput accounting ratio (TPAR)?",
+ options:["Increasing the speed of the FASTEST machine in the process","An unexpected increase in factory rent","A 5% wage rise linked to an 8% productivity improvement","A 10% sales discount to stimulate a 20% rise in demand"], correct:2,
+ explanation:"TPAR is governed by the SLOWEST (bottleneck) machine, not the fastest. Higher rent worsens TPAR. Demand already exceeds supply, so discounting achieves nothing. An 8% productivity gain for 5% higher wages genuinely lowers true cost per unit."},
+
+{id:"k56",num:"56",source:"Kaplan Exam Kit",topic:"Throughput Accounting",type:"tfgroup",
+ stem:"Three mutually exclusive products, bottleneck = machine hours. X: price $60, material $40, 10hrs/unit (return/hr $2.00 — currently made). Y: price $40, material $10, 20hrs/unit. Z: price $20, material $16, 2.5hrs/unit. For EACH action, would it IMPROVE the company's TPAR (i.e. cause a switch away from X)?",
+ statements:["Increase Z's selling price by 10%","Increase Y's selling price by 10%","Reduce Z's material cost by 5%","Reduce Y's material cost by 5%"],
+ correctAnswers:[true,false,false,false],
+ explanation:"X gives $2.00/hr currently. Z +10% price: ($22−$16)/2.5 = $2.40/hr → exceeds $2.00 → YES. Y +10% price: $1.70/hr → NO. Z −5% material: $1.92/hr → NO. Y −5% material: $1.525/hr → NO."},
+
+{id:"k57",num:"57",source:"Kaplan Exam Kit",topic:"Throughput Accounting",type:"numeric",tolerance:0.01,
+ stem:"Skye Ltd's product 'Cloud' gets a 15% discount off its $20 list price. Material cost/unit = $5. Process P: 8 machines, 90% capacity, 6 units/hr each. Process Q: 6 machines, 85% capacity, 9 units/hr each. Cloud needs 0.2hrs on P and 0.3hrs on Q per unit. What is Cloud's THROUGHPUT PER HOUR of the bottleneck resource (2dp)?",
+ correct:"60.00",
+ explanation:"Process P = 6×8×0.9 = 43.2/hr; Process Q = 9×6×0.85 = 45.9/hr → P is the bottleneck. Throughput/unit = ($20×0.85)−$5 = $12.00. Return/hr = $12.00 ÷ 0.2 = <b>$60.00</b>."},
+
+{id:"k58",num:"58",source:"Kaplan Exam Kit",topic:"Throughput Accounting",type:"long",
+ stem:"A machine (5hrs/day) makes 4 products. Production rate/machine hour: W=200 units, X=500, Y=400, Z=350. Throughput/unit: W=$230, X=$95, Y=$110, Z=$140. Rank the 4 products by THROUGHPUT PER MACHINE HOUR, best to worst.",
+ modelAnswer:"Throughput/machine hour: W = 200×$230 = $46,000 (3rd); X = 500×$95 = $47,500 (2nd); Y = 400×$110 = $44,000 (4th, last); Z = 350×$140 = $49,000 (1st, best). Final ranking: <b>Z, X, W, Y</b>."},
+
+{id:"k59",num:"59",source:"Kaplan Exam Kit",topic:"Throughput Accounting",type:"mcq",
+ stem:"A factory has 3 sequential processes. Process 2 is the bottleneck; Processes 1 and 3 have spare capacity. Which action will actually IMPROVE throughput?",
+ options:["Improve the efficiency of Process 2's maintenance routine","Increase demand for both products","Reduce rest-break time on Process 3","Reduce the time Product X needs on Process 1"], correct:0,
+ explanation:"Throughput is capped by the bottleneck (Process 2). Improving non-bottleneck processes or raising demand when supply is already capped changes nothing."},
+
+{id:"k60",num:"60",source:"Kaplan Exam Kit",topic:"Throughput Accounting",type:"mcq",
+ stem:"Which ONE statement is NOT true of throughput accounting?",
+ options:["It treats only materials/components as truly variable in the short run","It treats time at the bottleneck as having value, but not time elsewhere","It views stock-building as non-value-adding, and discourages it","It was designed as a DECISION-MAKING tool for bottleneck situations"], correct:3,
+ explanation:"Throughput accounting was designed as a performance MEASUREMENT tool, not a decision-making tool — even though it's often used to help decisions. A, B and C are all genuinely true."},
+
+{id:"k61",num:"61",source:"Kaplan Exam Kit",topic:"Throughput Accounting",type:"mcq",
+ stem:"Which of the following correctly defines the Throughput Accounting Ratio (TPAR)?",
+ options:["Throughput contribution ÷ hours on the bottleneck","Cost per factory hour ÷ Return per factory hour","Return per factory hour ÷ Cost per factory hour","Total costs ÷ Total throughput"], correct:2,
+ explanation:"TPAR = Return per factory hour ÷ Cost per factory hour. Option A is 'Return per factory hour' alone, not the full ratio."},
+
+{id:"bpp34tpar",num:"34",source:"BPP Practice Kit",topic:"Throughput Accounting",type:"longcalc",tolerance:0.05,
+ stem:"Product X sells for $40/unit, material cost $10/unit, direct labour $7/unit. Total direct labour budget is 50,000 hours/year at $12/hour. Factory overheads are $2,920,000/year. Machine time is the bottleneck — Product X needs 0.01 machine hours/unit; max capacity is 4,000 machine hours/year. What is the TPAR for Product X (2dp)? (Paste your workings below if useful.)",
+ correct:"3.41",
+ explanation:"Throughput/unit = $40−$10 = $30. Throughput/bottleneck hour = $30 ÷ 0.01 = $3,000. Total factory cost = $2,920,000 + (50,000×$12) = $3,520,000. Cost/bottleneck hour = $3,520,000 ÷ 4,000 = $880. TPAR = $3,000 ÷ $880 = <b>3.41</b>."},
+
+{id:"bpp60toc",num:"60",source:"BPP Practice Kit",topic:"Throughput Accounting",type:"mcq",
+ stem:"In the Theory of Constraints, which method(s) may be used to ELEVATE the performance of a binding constraint?<br>Method 1: Acquire more of the resource that is the binding constraint.<br>Method 2: Improve the efficiency of usage of the resource that is the binding constraint.",
+ options:["Method 1 only","Method 2 only","Method 1 and Method 2","Neither method would be effective"], correct:2,
+ explanation:"Both genuinely elevate a bottleneck: buying more of the scarce resource directly increases capacity, and using the existing resource more efficiently achieves the same effect without new investment."},
+
+{id:"k62",num:"62",source:"Kaplan Exam Kit",topic:"Environmental",type:"multi",
+ stem:"Which TWO of the following are environmental INTERNAL FAILURE costs?",
+ options:["Quality-control inspections monitoring pollution levels in waste water leaving production","Water purification treatment to clean waste water BEFORE it leaves the factory","Fitting carbon filters to machines to reduce emissions","A power-usage measuring system to monitor energy consumption","Paying fines for breaching environmental regulations","Insulating heating pipes to reduce heat loss","PR costs to repair reputational damage from accidental river pollution","Capturing and recycling waste exhaust gases to generate energy"],
+ correctIndices:[1,7],
+ explanation:"Internal failure = waste HAS been produced, but dealt with BEFORE it escapes. Cleaning waste water before it leaves, and capturing/recycling waste gases within the factory, are both internal failure costs. Options 1&4 are detection costs; 3&6 are prevention costs; 5&7 are external failure costs."},
+
+{id:"k63",num:"63",source:"Kaplan Exam Kit",topic:"Environmental",type:"longcalc",tolerance:20,
+ stem:"Process X's monthly input/output: Materials 1,000kg costing $50,000; System costs $30,000 (total input $80,000). Output: Good output 70% of input, sells at $120/kg; Waste 10%, costs $10/kg to scrap; Scrap 20%, sells at $15/kg — current monthly profit is $6,000. A new quality system would cost an EXTRA $5,000/month, cutting waste from 10% to 4% of input (scrap stays at 20%). What is the IMPACT on monthly profit ($, + or −)? Paste your workings below if useful.",
+ correct:"2800",
+ explanation:"New split: waste 4% (40kg), scrap 20% (200kg), good output 76% (760kg). New revenue: Good 760×$120=$91,200; Waste 40×(−$10)=−$400; Scrap 200×$15=$3,000 → $93,800. New input cost = $50,000+$30,000+$5,000=$85,000. New profit = $8,800. Impact = <b>increase of $2,800/month</b>."},
+
+{id:"bpp40envd",num:"40",source:"BPP Practice Kit",topic:"Environmental",type:"mcq",
+ stem:"When ABC is used for environmental accounting, which statement correctly distinguishes environment-related costs from environment-driven costs, regarding joint cost centres?",
+ options:["Environment-related costs can be attributed to joint cost centres and environment-driven costs cannot be","Environment-driven costs can be attributed to joint cost centres and environment-related costs cannot be","Both can be attributed to joint cost centres","Neither can be attributed to joint cost centres"], correct:1,
+ explanation:"Environment-RELATED costs are usually already directly traceable. Environment-DRIVEN costs are hidden inside general overheads — ABC's job is precisely to trace THESE to joint cost centres/products using proper drivers."},
+
+{id:"bpp42envtf",num:"42",source:"BPP Practice Kit",topic:"Environmental",type:"tfgroup",
+ stem:"Are the following statements about environmental cost accounting TRUE or FALSE?",
+ statements:["The majority of environmental costs are already captured somewhere in a typical accounting system — the difficulty lies in identifying them","Input/output analysis divides material flows into three categories: material, system, and delivery & disposal flows","Creating employment is an example of social sustainability","There are standard, universally agreed KPIs for measuring sustainability"],
+ correctAnswers:[true,false,true,false],
+ explanation:"1: TRUE — most environmental costs are buried in the accounts already. 2: FALSE — that 3-category description is actually FLOW COST ACCOUNTING, not input/output analysis. 3: TRUE — job creation is a textbook 'People' pillar example. 4: FALSE — there's no single agreed KPI set; this subjectivity is itself a standard criticism of TBL reporting."},
+
+{id:"bpp35mfca",num:"35",source:"BPP Practice Kit",topic:"Environmental",type:"tfgroup",
+ stem:"Are the following statements about Material Flow Cost Accounting (MFCA) TRUE or FALSE?",
+ statements:["In MFCA, waste is treated as a 'negative product' and given a cost","MFCA should encourage management to achieve the same output using less material input"],
+ correctAnswers:[true,true],
+ explanation:"Both true. MFCA costs waste/emissions as 'negative output' alongside the 'positive output' of good product — making inefficiency visible and pushing management to cut material use for the same output."},
+
+{id:"k67",num:"67",source:"Kaplan Exam Kit",topic:"Environmental",type:"multi",
+ stem:"Which TWO of the following statements about FLOW COST ACCOUNTING are correct?",
+ options:["Manufacturing costs are split into material costs, system costs, and delivery & disposal costs","Flow cost accounting balances material inflows against outflows, in physical quantities AND (at the end) monetary terms, forcing focus on environmental costs","Output costs are allocated between positive product costs and negative product costs","The aim of flow cost accounting is to INCREASE the quantity of materials used, which should help both the environment and total costs long-term"],
+ correctIndices:[0,2],
+ explanation:"Statements 1 and 3 correctly describe flow cost accounting. Statement 2 actually describes input/output analysis, a different technique. Statement 4 is wrong — the aim is to REDUCE material usage."},
+
+{id:"k68",num:"68",source:"Kaplan Exam Kit",topic:"Environmental",type:"mcq",
+ stem:"Which statement(s) about the ISSUES businesses face managing environmental costs are TRUE?<br>(1) The costs involved are difficult to define/identify.<br>(2) Environmental costs can be categorised as quality-related costs.<br>(3) Cost control is an issue, especially if costs were mis-identified in the first place.",
+ options:["(1) only","(2) and (3) only","None of them","All of them"], correct:3,
+ explanation:"All three are genuine issues: hard to isolate (1); mirror the TQM quality-cost structure (2); poor cost control follows if costs were never correctly identified (3)."},
+
+{id:"k69",num:"69",source:"Kaplan Exam Kit",topic:"Environmental",type:"mcq",
+ stem:"Flow cost accounting splits inputs/outputs into categories. Which of the following is NOT a category used in flow cost accounting?",
+ options:["Material flows","System flows","Delivery and disposal flows","Waste flows"], correct:3,
+ explanation:"Flow cost accounting uses exactly 3 categories: Material, System, and Delivery & disposal. 'Waste flows' isn't one — waste is a negative product WITHIN those 3 flows."},
+
+{id:"k70",num:"70",source:"Kaplan Exam Kit",topic:"Environmental",type:"mcq",
+ stem:"Accountants often find it hard to deal with environmental costs. Which of the following is NOT a genuine reason for this difficulty?",
+ options:["Costs are often hidden","Costs are mostly minor (small in size)","Costs are often very long-term","Accounting systems rarely split these costs out automatically"], correct:1,
+ explanation:"The SIZE of environmental costs is irrelevant to the difficulty of accounting for them — this is the distractor. Real reasons: hidden costs; long time horizons; systems don't isolate them by default."},
+
+{id:"k71",num:"71",source:"Kaplan Exam Kit",topic:"Environmental",type:"mcq",
+ stem:"Which is TRUE about Triple Bottom Line (TBL) reporting?<br>(1) TBL involves measuring an organisation's profit AND its impact on people and the planet.<br>(2) Measuring the impact on people, planet, and profit is very straightforward for most businesses.",
+ options:["(1) only","(2) only","Both (1) and (2)","Neither (1) nor (2)"], correct:0,
+ explanation:"(1) correctly describes TBL's '3 Ps'. (2) is FALSE — measuring social/environmental impact is notoriously subjective and difficult to monitor/report consistently."}
+    ]
+  },
+  {
+    id:"ch5",
+    label:"Chapter 5 — CVP Analysis",
+    locked:false,
+    footer:"Mix of Kaplan Exam Kit questions and Kaplan Study Text Test-Your-Understanding exercises. Where one scenario has several parts, each part repeats the full data itself rather than saying 'see above'.",
+    questions:[
+{id:"c5q1a",num:"TYU1(a)",source:"Kaplan Study Text",topic:"Single-Product CVP",type:"numeric",tolerance:1,
+ stem:"Product PQ: selling price $25/unit, variable cost $20/unit, fixed costs $50,000. (a) How many units must be made and sold to break even?",
+ correct:"10000",
+ explanation:"Contribution/unit = $25 − $20 = $5. Break-even units = Fixed costs ÷ Contribution/unit = $50,000 ÷ $5 = <b>10,000 units</b>."},
+
+{id:"c5q1b",num:"TYU1(b)",source:"Kaplan Study Text",topic:"Single-Product CVP",type:"numeric",tolerance:1,
+ stem:"Product PQ: selling price $25/unit, variable cost $20/unit, fixed costs $50,000. (b) What level of activity (in units) is required to generate a profit of $40,000?",
+ correct:"18000",
+ explanation:"Units required = (Required profit + Fixed costs) ÷ Contribution/unit = ($40,000 + $50,000) ÷ $5 = <b>18,000 units</b>."},
+
+{id:"c5q1c",num:"TYU1(c)",source:"Kaplan Study Text",topic:"Single-Product CVP",type:"numeric",tolerance:1,
+ stem:"Product PQ: selling price $25/unit, variable cost $20/unit, fixed costs $50,000, break-even point 10,000 units. The company budgets to sell 13,000 units. (c) What is the margin of safety, in units?",
+ correct:"3000",
+ explanation:"Margin of safety = Budgeted level − Break-even level = 13,000 − 10,000 = <b>3,000 units</b>."},
+
+{id:"c5q1d",num:"TYU1(d)",source:"Kaplan Study Text",topic:"Single-Product CVP",type:"numeric",tolerance:0.5,
+ stem:"Product PQ: selling price $25/unit, variable cost $20/unit. (d) What is the contribution/sales (C/S) ratio, as a percentage?",
+ correct:"20",
+ explanation:"Contribution/unit = $5. C/S ratio = Contribution ÷ Sales = $5 ÷ $25 = <b>20%</b>."},
+
+{id:"c5q1e",num:"TYU1(e)",source:"Kaplan Study Text",topic:"Single-Product CVP",type:"numeric",tolerance:1000,
+ stem:"Product PQ: fixed costs $50,000, C/S ratio 20%. (e) What is the break-even point expressed in sales revenue ($)?",
+ correct:"250000",
+ explanation:"Break-even revenue = Fixed costs ÷ C/S ratio = $50,000 ÷ 0.20 = <b>$250,000</b>."},
+
+{id:"c5q1f",num:"TYU1(f)",source:"Kaplan Study Text",topic:"Single-Product CVP",type:"numeric",tolerance:1000,
+ stem:"Product PQ: fixed costs $50,000, C/S ratio 20%. (f) What sales revenue is required to generate a profit of $40,000?",
+ correct:"450000",
+ explanation:"Required revenue = (Required profit + Fixed costs) ÷ C/S ratio = ($40,000 + $50,000) ÷ 0.20 = <b>$450,000</b>."},
+
+{id:"c5q2",num:"95",source:"Kaplan Exam Kit",topic:"Single-Product CVP",type:"tfgroup",
+ stem:"A company's product sells for $199/unit. Variable costs are $54 + $50 + $20 = $124/unit, giving a contribution of $75/unit. Fixed overheads are absorbed at $22/unit based on a budgeted 6,200 units/month (so total monthly fixed costs = $22 × 6,200 = $136,400). Are the following statements TRUE or FALSE?",
+ statements:["2,000 units of sales are required to break even next month","3,152 units of sales are required to achieve a profit of $100,000 next month","Monthly fixed costs amount to $136,400","The margin of safety (at budgeted sales of 6,200 units) is 50%"],
+ correctAnswers:[false,true,true,false],
+ explanation:"Break-even = $136,400 ÷ $75 = 1,819 units (not 2,000) — statement 1 is FALSE. Units for $100,000 profit = ($136,400 + $100,000) ÷ $75 = 3,152 units — statement 2 is TRUE. Fixed costs = $22 × 6,200 = $136,400 — statement 3 is TRUE. Margin of safety = (6,200 − 1,819) ÷ 6,200 = 71% (not 50%) — statement 4 is FALSE."},
+
+{id:"c5q3",num:"96",source:"Kaplan Exam Kit",topic:"Multi-Product CVP",type:"mcq",
+ stem:"A multi-product break-even chart shows two different break-even points, marked Point A and Point B, depending on the order products are assumed to be sold in. Which of the following statements are correct?<br>(1) Point A is the break-even point if the company's products are sold in order of their C/S ratio (highest first).<br>(2) Point B is the break-even point if the company's products are sold in the budgeted sales mix.<br>(3) Shifting the mix towards a product with a NEGATIVE contribution would improve the overall C/S ratio.<br>(4) If all three products are produced, the company can expect a total REVENUE of $350,000.",
+ options:["(1) and (2) only","(1), (2) and (3)","(3) and (4) only","(1), (2), (3) and (4)"], correct:0,
+ explanation:"(1) and (2) correctly describe how the two reference points on a multi-product chart are constructed. (3) is FALSE — shifting the mix toward a product with negative contribution would REDUCE overall profitability/C/S ratio, not improve it. (4) is FALSE too — the $350,000 figure in this scenario is the expected PROFIT, not revenue."},
+
+{id:"c5q4",num:"TYU7",source:"Kaplan Study Text",topic:"Single-Product CVP",type:"multi",
+ stem:"Which TWO of the following statements concerning the assumptions of cost-volume-profit (CVP) analysis are TRUE?",
+ options:["Contribution per unit is constant with respect to volume","Total fixed costs will reduce as volume increases","To increase demand, the selling price per unit must be reduced","All costs can be classified as either fixed or variable"],
+ correctIndices:[0,3],
+ explanation:"CVP assumes contribution per unit stays constant regardless of volume, and that every cost can be split into a fixed or variable element — both genuine CVP assumptions. Fixed costs are assumed constant in TOTAL (not reducing with volume — it's fixed cost PER UNIT that falls), and CVP assumes a constant selling price, so there's no assumed need to cut price to sell more."},
+
+{id:"c5q5",num:"TYU6",source:"Kaplan Study Text",topic:"Multi-Product CVP",type:"numeric",tolerance:5000,
+ stem:"PER plc sells three products. Budgeted fixed costs for the period are $648,000. Budgeted C/S ratios and sales mix: Product P — 27% C/S ratio, 30% of mix; Product E — 56% C/S ratio, 20% of mix; Product R — 38% C/S ratio, 50% of mix. What is the break-even SALES REVENUE for the period?",
+ correct:"1692247",
+ explanation:"Weighted average C/S ratio = (0.27×0.30) + (0.56×0.20) + (0.38×0.50) = 0.081 + 0.112 + 0.190 = 0.383 (38.3%). Break-even revenue = Fixed costs ÷ Weighted average C/S ratio = $648,000 ÷ 0.383 ≈ <b>$1,692,247</b>."}
+    ]
+  },
+  {
+    id:"ch6",
+    label:"Chapter 6 — Planning with Limiting Factors",
+    locked:false,
+    footer:"Mostly verbatim Kaplan Exam Kit questions (Q102–107), plus one full Study Text worked example on key factor analysis.",
+    questions:[
+{id:"c6q1",num:"TYU1",source:"Kaplan Study Text",topic:"Key Factor Analysis",type:"long",
+ stem:"X Ltd makes three products, A, B and C. Contribution per unit: A = $6, B = $5, C = $4. Machine hours per unit: A = 10, B = 12, C = 14. Labour hours per unit: A = 1.2, B = 0.8, C = 0.4. Sales demand: A up to 4,000 units, B up to 6,000, C up to 6,000 (company policy requires a minimum of 1,000 units of A). Machine hours available: 200,000. Labour hours available: 5,000. Determine the production plan that maximises profitability, and state the maximum contribution.",
+ modelAnswer:"Step 1 — identify the scarce resource: at full potential sales (4,000A + 6,000B + 6,000C), machine hours needed = 196,000 (within the 200,000 available), but labour hours needed = (4,000×1.2)+(6,000×0.8)+(6,000×0.4) = 4,800+4,800+2,400 = 12,000 hours — well over the 5,000 available. <b>Labour is the binding constraint.</b><br><br>Step 2/3 — contribution per labour hour: A = $6/1.2hrs = $5.00/hr; B = $5/0.8hrs = $6.25/hr; C = $4/0.4hrs = $10.00/hr.<br><br>Step 4 — rank: C (best) → B → A (worst).<br><br>Step 5 — allocate the 5,000 hours: Company policy first requires 1,000 units of A (1,000×1.2 = 1,200 hrs) → 3,800 hrs left. Then fill C fully: 6,000×0.4 = 2,400 hrs → 1,400 hrs left. Then B: 1,400÷0.8 = 1,750 units of B (demand of 6,000 not fully met).<br><br><b>Production plan: 1,000 A, 1,750 B, 6,000 C. Maximum contribution = (1,000×$6)+(1,750×$5)+(6,000×$4) = $6,000+$8,750+$24,000 = $38,750.</b>"},
+
+{id:"c6q2",num:"102",source:"Kaplan Exam Kit",topic:"Linear Programming & Shadow Prices",type:"mcq",
+ stem:"The shadow price of skilled labour for CBV is currently $8 per hour. What does this mean?",
+ options:["The cost of obtaining additional skilled labour resources is $8 per hour","There is a hidden cost of $8 for each hour of skilled labour actively worked","Contribution will be increased by $8 per hour for each extra hour of skilled labour that can be obtained","Total costs will be reduced by $8 for each additional hour of skilled labour that can be obtained"], correct:2,
+ explanation:"A shadow price is the extra CONTRIBUTION gained from one more unit of a binding scarce resource — here, $8 of extra contribution for each extra hour of skilled labour obtained. It isn't the cost of buying more labour, a hidden cost, or a cost reduction — it's a measure of contribution upside."},
+
+{id:"c6q3",num:"103",source:"Kaplan Exam Kit",topic:"Linear Programming & Shadow Prices",type:"mcq",
+ stem:"Three services R, S and T. Fee charged: R $100, S $150, T $160. Direct materials: R $15, S $30, T $25. Direct labour: R $20, S $35, T $30. Variable overhead: R $15, S $20, T $22. Fixed overhead (absorbed on machine hours, ignore for this decision): R $25, S $50, T $50. All three use the same type of direct labour, paid $25/hour, which is a SCARCE resource. What are the MOST and LEAST profitable uses of that direct labour?",
+ options:["Most: S, Least: R","Most: S, Least: T","Most: T, Least: R","Most: T, Least: S"], correct:3,
+ explanation:"Contribution/unit: R = $100−$15−$20−$15 = $50; S = $150−$30−$35−$20 = $65; T = $160−$25−$30−$22 = $83. Direct labour cost/unit: R=$20, S=$35, T=$30. Contribution per $1 of direct labour: R = 50/20 = $2.50; S = 65/35 = $1.86; T = 83/30 = $2.77. Ranking: T (best, 1st) > R (2nd) > S (worst, 3rd). So <b>most profitable use of labour is T, least profitable is S</b>."},
+
+{id:"c6q4",num:"104",source:"Kaplan Exam Kit",topic:"Linear Programming & Shadow Prices",type:"mcq",
+ stem:"A linear programming model for two products, X and Y: objective function C = 5X + 6Y. Each unit of X uses 2kg of material Z, each unit of Y uses 3kg. The standard cost of material Z is $2/kg. The shadow price of material Z has been calculated as $2.80/kg. If an extra 20kg of material Z becomes available at the normal $2/kg cost, what is the maximum increase in contribution?",
+ options:["Increase of $96","Increase of $56","Increase of $16","No change"], correct:1,
+ explanation:"By definition, the shadow price IS the increase in contribution per extra unit of the scarce resource — it already reflects the premium over normal cost. Increase = 20kg × $2.80 = <b>$56</b>. (Adding the $2/kg normal cost on top, giving $96, double-counts the cost; deducting it to get $16 misunderstands what a shadow price already represents.)"},
+
+{id:"c6q5",num:"105",source:"Kaplan Exam Kit",topic:"Linear Programming & Shadow Prices",type:"mcq",
+ stem:"An organisation facing a resource shortage has graphed a linear programming solution with televisions on the horizontal axis and tablet computers on the vertical axis. The iso-contribution line used to solve the LP is very FLAT and downward-sloping. Which statement is likely true?",
+ options:["The contribution per unit for tablet computers must be higher than that for televisions","The contribution per unit for televisions must be higher than that for tablet computers","The contribution per unit for each product is very similar","The contribution per unit for one of the products must be negative"], correct:0,
+ explanation:"The slope of the iso-contribution line is set by the RELATIVE contribution per unit of the two products. A very flat line means the product on the vertical axis (tablet computers) has a much higher contribution per unit than the one on the horizontal axis (televisions)."},
+
+{id:"c6q6",num:"106",source:"Kaplan Exam Kit",topic:"Linear Programming & Shadow Prices",type:"multi",
+ stem:"A linear programming model has been formulated for two products, A and B, made by J Co. Which TWO of the following statements about linear programming are TRUE?",
+ options:["J Co can still use linear programming if it starts to manufacture another product, C","J Co would not need linear programming if there was no demand constraint","J Co should ignore fixed costs when using linear programming to decide how to utilise short-run production capacity","Linear programming models can still be used when there is an experience curve, once a steady state has been reached"],
+ correctIndices:[2,3],
+ explanation:"Fixed costs genuinely should be ignored in short-run LP decisions (they don't change with the production mix) — TRUE. Once a learning/experience curve reaches a steady state, variable costs per unit become constant again, so LP can still be applied — TRUE. The other two are false: standard exam-style LP only handles TWO variables (adding product C breaks that), and LP needs at least two binding constraints — demand doesn't have to be one of them, but SOME second constraint must exist alongside the resource itself."},
+
+{id:"c6q7",num:"107",source:"Kaplan Exam Kit",topic:"Linear Programming & Shadow Prices",type:"numeric",tolerance:1,
+ stem:"An organisation's contribution function is C = 12A + 8B (A and B are units of Product A and Product B). The optimal production plan sits where these two constraints cross: Material X: A + 2B ≤ 8,000; Material Y: 2A + B ≤ 13,000. Maximum demand for each product is 10,000 units. How many units of Product A are produced to maximise contribution?",
+ correct:"6000",
+ explanation:"Multiply Material X by 2: 2A + 4B = 16,000. Subtract Material Y (2A + B = 13,000): 3B = 3,000, so B = 1,000. Substitute back: 2A + (4×1,000) = 16,000 → 2A = 12,000 → <b>A = 6,000 units</b>."}
+    ]
+  },
+  {
+    id:"ch7",
+    label:"Chapter 7 — Pricing",
+    locked:false,
+    footer:"Kaplan Exam Kit + BPP Practice Kit questions, including a genuine ACCA past-exam scenario (the 'GSA' question, Sep/Dec 2022 examiner's report). Multi-part scenarios have each part repeat the full data rather than referencing 'the question above'.",
+    questions:[
+{id:"c7q1",num:"113",source:"Kaplan Exam Kit",topic:"Pricing Strategies",type:"multi",
+ stem:"Which TWO of the following are valid reasons a company might adopt a PRICE SKIMMING strategy for a new product?",
+ options:["The market already has many close, similar substitutes","Demand for the product is relatively inelastic","The product's life cycle is expected to be short","Barriers to entry into the market are low"],
+ correctIndices:[1,2],
+ explanation:"Price skimming (launching high, then lowering price over time) suits inelastic demand (customers will pay a premium regardless) and a short life cycle (there's little time to wait and gradually build volume, so you extract maximum value early). Lots of close substitutes and low barriers to entry both argue AGAINST skimming, since competitors could undercut a high launch price."},
+
+{id:"c7q2",num:"116",source:"Kaplan Exam Kit",topic:"Pricing Strategies",type:"mcq",
+ stem:"A product has: Prime cost $12/unit, Marginal cost $15/unit, Total absorption cost (TAC) $21/unit. What price results from a 'Total absorption cost plus 20%' pricing policy?",
+ options:["$21.60","$24.00","$25.20","$24.40"], correct:2,
+ explanation:"TAC + 20% = $21 × 1.2 = <b>$25.20</b>. (The other options come from different bases: $21.60 = Prime cost + 80%; $24.00 = Marginal cost + 60%; $24.40 = TAC priced to give a 14% NET margin on selling price, i.e. $21 × 100/86 — a different calculation entirely, and a common exam trap if you mix up mark-up on cost vs margin on price.)"},
+
+{id:"c7q3",num:"118",source:"Kaplan Exam Kit",topic:"Pricing Strategies",type:"multi",
+ stem:"A company launches a genuinely unique new product. It has no established brand loyalty yet, and the product has a short shelf life. Which of the following pricing strategies would be VIABLE options for this launch?",
+ options:["Price skimming","Complementary product pricing","Price discrimination","Market penetration pricing"],
+ correctIndices:[0,1,2],
+ explanation:"Price skimming, complementary product pricing and price discrimination can all work here — the product's genuine uniqueness supports a premium/differentiated pricing approach without needing brand loyalty. Market PENETRATION pricing is the odd one out: it relies on brand loyalty and a long product life to recoup the low early margins through sustained volume — neither of which this product has."},
+
+{id:"c7q4a",num:"115(a)",source:"Kaplan Exam Kit",topic:"Optimal Pricing (MR=MC)",type:"numeric",tolerance:100,
+ stem:"A product's demand equation is P = $1,500 − 0.01Q. Variable cost (= marginal cost) is $200/unit. Fixed costs are $20,000,000. (a) What is the profit-maximising output level, Q?",
+ correct:"65000",
+ explanation:"MR = a − 2bQ = 1,500 − 0.02Q. Set MR = MC: 1,500 − 0.02Q = 200 → 0.02Q = 1,300 → <b>Q = 65,000 units</b>."},
+
+{id:"c7q4b",num:"115(b)",source:"Kaplan Exam Kit",topic:"Optimal Pricing (MR=MC)",type:"numeric",tolerance:5,
+ stem:"Same product: demand equation P = $1,500 − 0.01Q, variable cost $200/unit, profit-maximising quantity Q = 65,000 units. (b) What is the profit-maximising SELLING PRICE?",
+ correct:"850",
+ explanation:"Substitute Q = 65,000 into the demand equation: P = $1,500 − (0.01 × 65,000) = $1,500 − $650 = <b>$850</b>."},
+
+{id:"c7q4c",num:"115(c)",source:"Kaplan Exam Kit",topic:"Optimal Pricing (MR=MC)",type:"numeric",tolerance:50000,
+ stem:"Same product: profit-maximising price $850, quantity 65,000 units, variable cost $200/unit, fixed costs $20,000,000. (c) What is the maximum total profit?",
+ correct:"22250000",
+ explanation:"Revenue = $850 × 65,000 = $55,250,000. Variable costs = $200 × 65,000 = $13,000,000. Profit = $55,250,000 − $13,000,000 − $20,000,000 = <b>$22,250,000</b>."},
+
+{id:"c7q5a",num:"117(a)",source:"Kaplan Exam Kit",topic:"Optimal Pricing (MR=MC)",type:"numeric",tolerance:100,
+ stem:"At a price of $400/unit, monthly demand for a product is 5,000 units. For every $20 increase in price, demand falls by 1,000 units. Variable cost (= marginal cost) is $200/unit. (a) What is the profit-maximising quantity, Q?",
+ correct:"7500",
+ explanation:"Gradient b = $20 ÷ 1,000 units = 0.02. Using P=400 at Q=5,000: 400 = a − 0.02(5,000) → a = $500. Demand equation: P = 500 − 0.02Q, so MR = 500 − 0.04Q. Set MR=MC: 500 − 0.04Q = 200 → 0.04Q = 300 → <b>Q = 7,500 units</b>."},
+
+{id:"c7q5b",num:"117(b)",source:"Kaplan Exam Kit",topic:"Optimal Pricing (MR=MC)",type:"numeric",tolerance:5,
+ stem:"Same product: demand equation P = $500 − 0.02Q, profit-maximising quantity Q = 7,500 units. (b) What is the profit-maximising PRICE?",
+ correct:"350",
+ explanation:"Substitute Q = 7,500: P = $500 − (0.02 × 7,500) = $500 − $150 = <b>$350</b>."},
+
+{id:"c7q6",num:"162",source:"BPP Practice Kit",topic:"Demand & Elasticity",type:"long",
+ stem:"Rotanola Co's RTN99 phone sells for $110/unit; weekly demand is 20,000 phones. Market research shows a $10 price cut would increase weekly demand by 2,000 phones. What is the straight-line demand equation for the RTN99, in the form P = a − bQ?",
+ modelAnswer:"b (the gradient) = price change ÷ quantity change = $10 ÷ 2,000 = 0.005. Using the known point (P=$110, Q=20,000): 110 = a − (0.005 × 20,000) = a − 100, so a = $210. <b>Demand equation: P = 210 − 0.005Q.</b>"},
+
+{id:"c7q7",num:"164",source:"BPP Practice Kit",topic:"Optimal Pricing (MR=MC)",type:"numeric",tolerance:50,
+ stem:"Rotanola Co's CTF99 phone: at a price of $250, demand is 12,000 units/week; demand rises or falls by 5 units for every $1 fall or rise in selling price. The marginal cost of the CTF99 is $80. What is the profit-maximising weekly demand (Q) for the CTF99?",
+ correct:"6425",
+ explanation:"Gradient b = 1 ÷ 5 = 0.2. Using P=250 at Q=12,000: 250 = a − 0.2(12,000) = a − 2,400, so a = $2,650. MR = 2,650 − 0.4Q. Set MR=MC: 2,650 − 0.4Q = 80 → 0.4Q = 2,570 → <b>Q = 6,425 units</b>."},
+
+{id:"c7q8",num:"165",source:"BPP Practice Kit",topic:"Demand & Elasticity",type:"tfgroup",
+ stem:"Rotanola Co produces another phone with a price elasticity of demand (PED) EXACTLY EQUAL TO ONE (unit elastic). Are the following statements TRUE or FALSE?",
+ statements:["Demand will remain constant despite price changes","If price increases by 5%, demand will fall by 10%","Total expenditure (revenue) will remain constant despite price changes"],
+ correctAnswers:[false,false,true],
+ explanation:"PED=1 does NOT mean demand stays constant (statement 1 false) — it means demand changes by the SAME percentage as price, so a 5% price rise causes a 5% demand fall, not 10% (statement 2 false). Because the percentage changes exactly offset each other, total revenue (price × quantity) stays constant — statement 3 is TRUE, and is the defining practical consequence of unit elasticity."},
+
+{id:"c7q9",num:"166",source:"BPP Practice Kit",topic:"Pricing Strategies",type:"mcq",
+ stem:"When is a MARKET PENETRATION pricing policy generally appropriate for a product like Rotanola Co's phones?",
+ options:["If the phone is new and different, with no close substitutes","If demand for the phone is highly elastic","If high development costs need to be recovered quickly","If there is no possibility of economies of scale"], correct:1,
+ explanation:"Penetration pricing (launching low to build volume fast) works when demand is highly ELASTIC — customers are price-sensitive, so a low price genuinely drives high volume. A unique product with no substitutes, a need to recover costs QUICKLY (skimming territory), or no economies of scale to exploit as volume grows would all argue AGAINST a penetration strategy."},
+
+{id:"c7q10",num:"Q2 (real ACCA exam, Sep/Dec 2022)",source:"BPP Practice Kit",topic:"Demand & Elasticity",type:"mcq",
+ stem:"For product GSA, the demand equation is P = 450 − 0.2Q, and the current price is $250. Which statement about the price elasticity of demand for the GSA is TRUE?",
+ options:["Its demand is price elastic, and revenue will increase if the price is decreased to $230","Its demand is price elastic, and revenue will decrease if the price is decreased to $230","Its demand is price inelastic, and revenue will increase if the price is decreased to $230","Its demand is price inelastic, and revenue will decrease if the price is decreased to $230"], correct:0,
+ explanation:"At P=$250: 250=450−0.2Q → Q=1,000, revenue=$250,000. At P=$230: 230=450−0.2Q → Q=1,100, revenue=$253,000. Revenue INCREASES when price falls — that's the signature of ELASTIC demand (quantity responds more than proportionally to the price change). This is a genuine ACCA PM exam question (Sep/Dec 2022)."},
+
+{id:"c7q11",num:"Q3 (real ACCA exam, Sep/Dec 2022)",source:"BPP Practice Kit",topic:"Optimal Pricing (MR=MC)",type:"numeric",tolerance:2,
+ stem:"For product GSA, the demand equation is P = 450 − 0.2Q. Variable costs total $54/unit (materials $30 + labour $24), and variable cost is used as a proxy for marginal cost. What is the profit-maximising price for the GSA, to the nearest whole $?",
+ correct:"252",
+ explanation:"MR = a − 2bQ = 450 − 0.4Q. Set MR = MC: 450 − 0.4Q = 54 → 0.4Q = 396 → Q = 990. Substitute back: P = 450 − (0.2 × 990) = 450 − 198 = <b>$252</b>. This is the same genuine ACCA exam question as the previous one — together they show the full elasticity-then-optimise workflow examiners test."}
+    ]
+  }
+];
+
+const TOPIC_COLORS = {
+  "ABC":{bg:"#DCEAFB",fg:"#1D4ED8"},
+  "Target Costing":{bg:"#DCF3E6",fg:"#0F7A46"},
+  "Life-Cycle Costing":{bg:"#EBE1FA",fg:"#6D28D9"},
+  "Throughput Accounting":{bg:"#FCEBD3",fg:"#B45309"},
+  "Environmental":{bg:"#D6EFEC",fg:"#0F7669"},
+  "Absorption Costing":{bg:"#DCEAFB",fg:"#1D4ED8"},
+  "Marginal Costing":{bg:"#DCF3E6",fg:"#0F7A46"},
+  "AC vs MC":{bg:"#EBE1FA",fg:"#6D28D9"},
+  "Information Systems Types":{bg:"#DCEAFB",fg:"#1D4ED8"},
+  "Data Security & Controls":{bg:"#FCEBD3",fg:"#B45309"},
+  "Nature of MI":{bg:"#DCF3E6",fg:"#0F7A46"},
+  "Big Data Characteristics":{bg:"#DCEAFB",fg:"#1D4ED8"},
+  "Big Data Benefits & Risks":{bg:"#FCEBD3",fg:"#B45309"},
+  "Data & DIKW":{bg:"#DCF3E6",fg:"#0F7A46"},
+  "Single-Product CVP":{bg:"#DCEAFB",fg:"#1D4ED8"},
+  "Multi-Product CVP":{bg:"#EBE1FA",fg:"#6D28D9"},
+  "Key Factor Analysis":{bg:"#DCF3E6",fg:"#0F7A46"},
+  "Linear Programming & Shadow Prices":{bg:"#FCEBD3",fg:"#B45309"},
+  "Pricing Strategies":{bg:"#DCEAFB",fg:"#1D4ED8"},
+  "Demand & Elasticity":{bg:"#EBE1FA",fg:"#6D28D9"},
+  "Optimal Pricing (MR=MC)":{bg:"#FCEBD3",fg:"#B45309"}
+};
+
+/* ============ STATE ============ */
+let db=null, sampleFn=null;
+let currentChapter = CHAPTERS[0].id;
+let state = {}; // qid -> {note, attempts:[{ts,correct,seconds,answer}], cur:{answer,correct,feedback,seconds}}
+let currentFilter = "all";
+let revealedTopics = new Set();
+let insightScope = 'collective'; // 'collective' | 'current'
+// global session timer (one clock for the whole practice session, not per-question)
+let sessionRunning=false, segmentStart=null, sessionTotal=0, sinceLastMark=0;
+
+function chapterOf(id){ return CHAPTERS.find(c=>c.id===id); }
+function blankDoc(){ return {note:"", attempts:[], cur:{}, mastered:false}; }
+
+function migrateIfNeeded(data){
+  if(!data) return blankDoc();
+  if(data.cur!==undefined) return {note:data.note||"", attempts:data.attempts||[], cur:data.cur||{}, mastered:!!data.mastered};
+  // old flat shape
+  return {
+    note: data.note||"",
+    attempts: [],
+    cur: {answer:data.answer, correct:data.correct, feedback:data.feedback, seconds:0}
+  };
+}
+
+/* ============ SUPABASE STORAGE (drop-in replacement for the claude.ai "db" capability) ============ */
+const SUPABASE_URL = "https://psjvmncafqmfazegpdmv.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_VuAKyrtGTedcDQcXskGRlA_Lvr0vYaq";
+let sb = null; // supabase client
+let currentUserId = null;
+
+function makeDbShim(client, userId){
+  function parsePath(path){
+    const parts = path.split('/'); // data/users/me/chapters/<chapterId>/attempts/<qid>  OR  .../session
+    const chapterId = parts[4];
+    const questionId = (parts[5] === 'session') ? '__session__' : parts[6];
+    return {chapterId, questionId};
+  }
+  return {
+    doc(path){
+      const {chapterId, questionId} = parsePath(path);
+      return {
+        async get(){
+          const {data, error} = await client.from('attempts').select('data')
+            .eq('user_id', userId).eq('chapter_id', chapterId).eq('question_id', questionId)
+            .maybeSingle();
+          if(error || !data) return null;
+          return {exists:true, data:()=>data.data};
+        },
+        async set(obj){
+          const {error} = await client.from('attempts').upsert({
+            user_id:userId, chapter_id:chapterId, question_id:questionId,
+            data:obj, updated_at:new Date().toISOString()
+          });
+          if(error) throw error;
+        }
+      };
+    }
+  };
+}
+
+async function initCapabilities(){
+  try{ db = currentUserId ? makeDbShim(sb, currentUserId) : null; }catch(e){ db=null; }
+  if(!db) document.getElementById('storageWarn').style.display='block';
+  sampleFn = null; // AI auto-grading only works inside claude.ai — manual self-marking is used instead here
+}
+
+/* ============ TWO-FACTOR AUTHENTICATION (TOTP) — COMPULSORY ============ */
+let pendingMfaFactorId = null, pendingMfaChallengeId = null;
+
+function showLoginGate(){ document.getElementById('loginGate').style.display='flex'; }
+function hideLoginGate(){ document.getElementById('loginGate').style.display='none'; document.body.classList.remove('gate-blur'); }
+
+// Returns true if the gate must stay up (enrollment or challenge shown), false if fully authenticated (aal2).
+async function enforceMfaGate(){
+  showLoginGate();
+  document.getElementById('loginFields').style.display='none';
+  const {data:factorsData} = await sb.auth.mfa.listFactors();
+  const totp = (factorsData && factorsData.totp || []).find(f=>f.status==='verified');
+  if(!totp){
+    await startEnrollment();
+    return true;
+  }
+  const {data:aal} = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(aal && aal.currentLevel === 'aal1' && aal.nextLevel === 'aal2'){
+    await startChallenge(totp.id);
+    return true;
+  }
+  return false;
+}
+
+async function startEnrollment(){
+  const errBox = document.getElementById('loginError'); errBox.textContent='';
+  try{
+    const {data:enrollData, error} = await sb.auth.mfa.enroll({factorType:'totp'});
+    if(error){ errBox.textContent = error.message || 'Could not start 2FA setup — reload and try again.'; return; }
+    pendingMfaFactorId = enrollData.id;
+    document.getElementById('enrollQr').src = enrollData.totp.qr_code;
+    document.getElementById('enrollSecret').textContent = enrollData.totp.secret;
+    document.getElementById('enrollFields').style.display='block';
+    document.body.classList.add('gate-blur');
+  }catch(e){ errBox.textContent = 'Could not start 2FA setup — reload and try again.'; }
+}
+
+async function handleEnrollConfirm(){
+  const code = document.getElementById('enrollCode').value.trim();
+  const errBox = document.getElementById('loginError');
+  const btn = document.getElementById('enrollConfirmBtn');
+  errBox.textContent = '';
+  if(!code){ errBox.textContent = 'Enter the 6-digit code.'; return; }
+  btn.disabled = true; btn.textContent = 'Confirming...';
+  try{
+    const {data:ch, error:chErr} = await sb.auth.mfa.challenge({factorId: pendingMfaFactorId});
+    if(chErr){ errBox.textContent = chErr.message || 'Failed — try again.'; btn.disabled=false; btn.textContent='Confirm & continue'; return; }
+    const {error} = await sb.auth.mfa.verify({factorId: pendingMfaFactorId, challengeId: ch.id, code});
+    if(error){ errBox.textContent = error.message || 'Incorrect code.'; btn.disabled=false; btn.textContent='Confirm & continue'; return; }
+    hideLoginGate();
+    armIdleTimer();
+    await boot();
+  }catch(e){
+    errBox.textContent = 'Confirmation failed — try again.';
+    btn.disabled=false; btn.textContent='Confirm & continue';
+  }
+}
+
+async function startChallenge(factorId){
+  try{
+    const {data:ch} = await sb.auth.mfa.challenge({factorId});
+    pendingMfaFactorId = factorId; pendingMfaChallengeId = ch.id;
+    document.getElementById('mfaFields').style.display='block';
+    document.body.classList.add('gate-blur');
+  }catch(e){
+    document.getElementById('loginError').textContent = 'Could not start verification — reload and try again.';
+  }
+}
+
+async function handleMfaVerify(){
+  const code = document.getElementById('mfaCode').value.trim();
+  const errBox = document.getElementById('loginError');
+  const btn = document.getElementById('mfaVerifyBtn');
+  errBox.textContent = '';
+  if(!code){ errBox.textContent = 'Enter the 6-digit code.'; return; }
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  try{
+    const {error} = await sb.auth.mfa.verify({factorId:pendingMfaFactorId, challengeId:pendingMfaChallengeId, code});
+    if(error){ errBox.textContent = error.message || 'Incorrect code.'; btn.disabled=false; btn.textContent='Verify'; return; }
+    hideLoginGate();
+    armIdleTimer();
+    await boot();
+  }catch(e){
+    errBox.textContent = 'Verification failed — try again.';
+    btn.disabled=false; btn.textContent='Verify';
+  }
+}
+
+async function renderSecurityPanel(){
+  const panel = document.getElementById('securityPanel');
+  panel.innerHTML = '<span class="hint">Loading...</span>';
+  const {data} = await sb.auth.mfa.listFactors();
+  const totp = (data && data.totp || []).find(f=>f.status==='verified');
+  panel.innerHTML = totp
+    ? `<div class="hint">Two-factor authentication is <b>ON</b> for this account and required to log in — it can't be turned off from here.</div>`
+    : `<div class="hint">Two-factor authentication will be set up automatically the next time you log in.</div>`;
+}
+
+/* ============ AUTO LOG-OFF AFTER INACTIVITY ============ */
+const IDLE_LIMIT_MS = 30*60*1000; // 30 minutes
+let idleTimer = null;
+function armIdleTimer(){
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(()=>{ alert('Logged out after 30 minutes of inactivity.'); handleLogout(); }, IDLE_LIMIT_MS);
+}
+['mousemove','keydown','click','touchstart','scroll'].forEach(evt=>{
+  document.addEventListener(evt, ()=>{ if(currentUserId) armIdleTimer(); }, {passive:true});
+});
+
+async function handleLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errBox = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errBox.textContent = '';
+  if(!email || !password){ errBox.textContent = 'Enter both email and password.'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  try{
+    const {data, error} = await sb.auth.signInWithPassword({email, password});
+    if(error){ errBox.textContent = error.message || 'Login failed.'; btn.disabled=false; btn.textContent='Log in'; return; }
+    currentUserId = data.user.id;
+    const gateShown = await enforceMfaGate();
+    if(!gateShown){
+      hideLoginGate();
+      armIdleTimer();
+      await boot();
+    }
+    btn.disabled = false; btn.textContent = 'Log in';
+  }catch(e){
+    errBox.textContent = 'Login failed — check your connection and try again.';
+    btn.disabled=false; btn.textContent='Log in';
+  }
+}
+
+async function handleLogout(){
+  try{ await sb.auth.signOut(); }catch(e){}
+  location.reload();
+}
+
+async function loadState(chapterId){
+  const qs = chapterOf(chapterId).questions;
+  state = {};
+  if(!db){ qs.forEach(q=>state[q.id]=blankDoc()); return; }
+  await Promise.all(qs.map(async q=>{
+    try{
+      const snap = await db.doc(`data/users/me/chapters/${chapterId}/attempts/${q.id}`).get();
+      let data=null;
+      if(snap){
+        if(typeof snap.data==='function') data = snap.data();
+        else if(snap.exists!==undefined) data = snap.exists ? (snap.data?snap.data():snap) : null;
+        else data = snap;
+      }
+      state[q.id] = migrateIfNeeded(data);
+    }catch(e){ state[q.id]=blankDoc(); }
+  }));
+}
+
+async function loadChapterDocsRaw(chapterId){
+  // used by reset-all to touch chapters not currently displayed
+  const qs = chapterOf(chapterId).questions;
+  const out = {};
+  await Promise.all(qs.map(async q=>{
+    try{
+      const snap = await db.doc(`data/users/me/chapters/${chapterId}/attempts/${q.id}`).get();
+      let data=null;
+      if(snap){
+        if(typeof snap.data==='function') data = snap.data();
+        else if(snap.exists!==undefined) data = snap.exists ? (snap.data?snap.data():snap) : null;
+        else data = snap;
+      }
+      out[q.id] = migrateIfNeeded(data);
+    }catch(e){ out[q.id]=blankDoc(); }
+  }));
+  return out;
+}
+
+async function persist(chapterId,id,docOverride){
+  if(!db) return;
+  try{ await db.doc(`data/users/me/chapters/${chapterId}/attempts/${id}`).set(docOverride||state[id]); }
+  catch(e){ console.error("save failed",e); }
+}
+
+function normalizeNum(v){
+  if(v===undefined||v===null) return NaN;
+  const matches = String(v).match(/-?\$?\d[\d,]*\.?\d*/g);
+  if(!matches) return NaN;
+  const last = matches[matches.length-1];
+  return parseFloat(last.replace(/[$,\s]/g,''));
+}
+function fmtTime(sec){
+  sec = Math.max(0, Math.round(sec||0));
+  const m = Math.floor(sec/60), s = sec%60;
+  return m+':'+String(s).padStart(2,'0');
+}
+
+/* ---- attempt-history helpers ---- */
+function allAttemptsFor(qid){
+  const d = state[qid]; if(!d) return [];
+  const hist = (d.attempts||[]).slice();
+  if(d.cur && d.cur.correct!==undefined){
+    hist.push({ts:Date.now(),correct:d.cur.correct,seconds:d.cur.seconds||0,answer:d.cur.answer});
+  }
+  return hist;
+}
+function totalSecondsFor(qid){
+  const d = state[qid]; if(!d) return 0;
+  let s = (d.attempts||[]).reduce((a,x)=>a+(x.seconds||0),0);
+  if(d.cur) s += (d.cur.seconds||0);
+  return s;
+}
+function wrongCountFor(qid){ return allAttemptsFor(qid).filter(a=>a.correct===false).length; }
+function attemptsInScope(qid, scope){
+  const d = state[qid]; if(!d) return [];
+  if(scope==='current'){
+    if(d.cur && d.cur.correct!==undefined) return [{correct:d.cur.correct, seconds:d.cur.seconds||0, answer:d.cur.answer}];
+    return [];
+  }
+  return allAttemptsFor(qid);
+}
+function scoreInScope(qid, scope){
+  const atts = attemptsInScope(qid, scope);
+  if(atts.length===0) return {diff:'new', totalSec:0, wrongCount:0, total:0};
+  let score=0, wrong=0, sec=0;
+  atts.forEach(a=>{ score += a.correct===true?1:(a.correct==='partial'?0.5:0); if(a.correct===false) wrong++; sec+=a.seconds||0; });
+  const acc = score/atts.length;
+  const diff = acc>=0.8?'easy':acc>=0.4?'medium':'hard';
+  return {diff, totalSec:sec, wrongCount:wrong, total:atts.length};
+}
+function difficultyFor(qid){
+  const d = state[qid];
+  if(d && d.mastered) return 'easy';
+  const all = allAttemptsFor(qid);
+  if(all.length===0) return 'new';
+  const latest = all[all.length-1];
+  if(latest.correct !== true) return 'needspractice'; // wrong or partial — always needs another look
+  const firstTry = all.length === 1;                  // correct straight away, no earlier wrong attempts ever
+  const fast = (latest.seconds||0) <= 180;             // solved within 3 minutes
+  return (firstTry && fast) ? 'easy' : 'needspractice';
+}
+
+/* ============ GLOBAL SESSION TIMER ============ */
+async function loadSession(chapterId){
+  sessionTotal=0; sinceLastMark=0; sessionRunning=false; segmentStart=null;
+  if(!db) return;
+  try{
+    const snap = await db.doc(`data/users/me/chapters/${chapterId}/session`).get();
+    let data=null;
+    if(snap){
+      if(typeof snap.data==='function') data=snap.data();
+      else if(snap.exists!==undefined) data=snap.exists?(snap.data?snap.data():snap):null;
+      else data=snap;
+    }
+    sessionTotal=(data&&data.sessionTotal)||0;
+    sinceLastMark=(data&&data.sinceLastMark)||0;
+  }catch(e){}
+}
+async function persistSession(chapterId){
+  if(!db) return;
+  try{ await db.doc(`data/users/me/chapters/${chapterId}/session`).set({sessionTotal,sinceLastMark}); }
+  catch(e){}
+}
+function toggleSession(){
+  if(sessionRunning){
+    const elapsed=Math.floor((Date.now()-segmentStart)/1000);
+    sessionTotal+=elapsed; sinceLastMark+=elapsed;
+    sessionRunning=false; segmentStart=null;
+    persistSession(currentChapter);
+  } else {
+    sessionRunning=true; segmentStart=Date.now();
+  }
+  renderSessionBar();
+}
+// Called right before a question gets marked: folds the running segment in,
+// hands back however many seconds have built up since the LAST question was
+// marked (this is what gets attributed as "time spent" on the question just answered),
+// then resets the counter for the next one. Paused time is never counted.
+function captureMarkTime(){
+  if(sessionRunning){
+    const now=Date.now();
+    const elapsed=Math.floor((now-segmentStart)/1000);
+    sessionTotal+=elapsed; sinceLastMark+=elapsed; segmentStart=now;
+  }
+  const secs = sinceLastMark;
+  sinceLastMark=0;
+  persistSession(currentChapter);
+  return secs;
+}
+function renderSessionBar(){
+  const btn=document.getElementById('sessionToggle');
+  const disp=document.getElementById('sessionDisplay');
+  if(!btn||!disp) return;
+  btn.textContent = sessionRunning? '❙❙ Pause':'▶ Play';
+  btn.classList.toggle('on', sessionRunning);
+  const shown = sessionRunning? sessionTotal+Math.floor((Date.now()-segmentStart)/1000) : sessionTotal;
+  disp.textContent = fmtTime(shown);
+}
+setInterval(()=>{ if(sessionRunning) renderSessionBar(); },1000);
+
+/* ============ RESET ============ */
+function archiveAndClear(doc){
+  if(doc.cur && doc.cur.correct!==undefined){
+    doc.attempts = doc.attempts||[];
+    doc.attempts.push({ts:Date.now(), correct:doc.cur.correct, seconds:doc.cur.seconds||0, answer:doc.cur.answer});
+  }
+  doc.cur = {};
+  return doc;
+}
+async function resetChapter(chapterId, isCurrent){
+  const qs = chapterOf(chapterId).questions;
+  const source = isCurrent ? state : await (db? loadChapterDocsRaw(chapterId) : Promise.resolve(Object.fromEntries(qs.map(q=>[q.id,blankDoc()]))));
+  for(const q of qs){
+    const doc = archiveAndClear(source[q.id]||blankDoc());
+    source[q.id]=doc;
+    await persist(chapterId,q.id,doc);
+  }
+  if(isCurrent) state = source;
+}
+async function hardResetAll(){
+  for(const ch of CHAPTERS){
+    for(const q of ch.questions){
+      await persist(ch.id, q.id, blankDoc());
+    }
+    try{ await db.doc(`data/users/me/chapters/${ch.id}/session`).set({sessionTotal:0,sinceLastMark:0}); }catch(e){}
+  }
+}
+document.getElementById('resetChapterBtn').addEventListener('click', async()=>{
+  if(!confirm("Archive your current answers for this chapter and start a fresh attempt? Nothing is deleted — every past attempt stays in your history.")) return;
+  await resetChapter(currentChapter, true);
+  renderAll();
+});
+document.getElementById('resetAllBtn').addEventListener('click', async()=>{
+  const warned = confirm("⚠ WARNING\n\nIf you reset ALL chapters, all previous history will be permanently deleted and you will lose all tracking and performance across every chapter. This CANNOT be undone.\n\nClick OK to continue, or Cancel to back out.");
+  if(!warned) return;
+  const typed = prompt('This is permanent. Type DELETE (capitals) to confirm erasing everything:');
+  if(typed !== 'DELETE'){ alert('Cancelled — nothing was deleted.'); return; }
+  await hardResetAll();
+  sessionTotal=0; sinceLastMark=0; sessionRunning=false; segmentStart=null;
+  await loadState(currentChapter);
+  await loadSession(currentChapter);
+  renderSessionBar();
+  renderAll();
+  alert('All chapters have been fully reset. Every past attempt, note and mastered flag has been erased.');
+});
+
+/* ============ RENDER ============ */
+function renderChapterTabs(){
+  const wrap = document.getElementById('chapterTabs');
+  wrap.innerHTML = `<select id="chapterSelect" class="chapterselect"></select>`;
+  const sel = document.getElementById('chapterSelect');
+  CHAPTERS.forEach(ch=>{
+    const opt=document.createElement('option');
+    opt.value=ch.id;
+    opt.textContent = ch.label + (ch.locked? '  (coming soon)':'');
+    opt.disabled = ch.locked;
+    if(ch.id===currentChapter) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', async ()=>{
+    const chId = sel.value;
+    if(chId===currentChapter) return;
+    currentChapter = chId;
+    await loadState(currentChapter);
+    await loadSession(currentChapter);
+    renderSessionBar();
+    currentFilter='all';
+    renderChapterTabs();
+    renderAll();
+    await saveLastPosition();
+    maybePromptSession();
+  });
+}
+
+/* ============ RESUME WHERE YOU LEFT OFF ============ */
+async function saveLastPosition(){
+  try{ await db.doc('data/users/me/chapters/__meta__/attempts/lastposition').set({chapterId: currentChapter}); }catch(e){}
+}
+async function loadLastPosition(){
+  if(!db) return null;
+  try{
+    const snap = await db.doc('data/users/me/chapters/__meta__/attempts/lastposition').get();
+    if(snap && snap.data){ const d = snap.data(); return d && d.chapterId; }
+  }catch(e){}
+  return null;
+}
+function scrollToNextUnattempted(){
+  const qs = chapterOf(currentChapter).questions;
+  const target = qs.find(q=>difficultyFor(q.id)==='new');
+  if(target){
+    const el = document.getElementById('card-'+target.id);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+
+function renderStatCards(){
+  const qs = chapterOf(currentChapter).questions;
+  let notAttempted=0, needsPractice=0, mastered=0, notes=0;
+  qs.forEach(q=>{
+    const diff = difficultyFor(q.id);
+    if(diff==='new') notAttempted++;
+    else if(diff==='needspractice') needsPractice++;
+    else if(diff==='easy') mastered++;
+    const note = state[q.id] && state[q.id].note;
+    if(note && note.trim()) notes++;
+  });
+  const cards = [
+    {f:'all',label:'Questions',val:qs.length,cls:''},
+    {f:'unattempted',label:'Not attempted',val:notAttempted,cls:'unattempted'},
+    {f:'needspractice',label:'Needs practice',val:needsPractice,cls:'needspractice'},
+    {f:'mastered',label:'Mastered / Easy',val:mastered,cls:'mastered'},
+    {f:'notes',label:'Has a note',val:notes,cls:''}
+  ];
+  const wrap = document.getElementById('statCards');
+  wrap.innerHTML='';
+  cards.forEach(c=>{
+    const div=document.createElement('div');
+    div.className='stat '+c.cls+(currentFilter===c.f?' selfilter':'');
+    div.innerHTML=`<b>${c.val}</b><span>${c.label}</span>`;
+    div.addEventListener('click',()=>{ currentFilter=c.f; renderAll(); });
+    wrap.appendChild(div);
+  });
+  const done = qs.length - notAttempted;
+  document.getElementById('progressBar').style.width = qs.length? (done/qs.length*100)+'%':'0%';
+}
+
+function passesFilter(q){
+  const note = state[q.id]&&state[q.id].note;
+  if(currentFilter==='all') return true;
+  if(currentFilter==='notes') return !!(note&&note.trim());
+  if(currentFilter==='unattempted') return difficultyFor(q.id)==='new';
+  if(currentFilter==='needspractice') return difficultyFor(q.id)==='needspractice';
+  if(currentFilter==='mastered') return difficultyFor(q.id)==='easy';
+  return true;
+}
+function optionLetter(i){ return String.fromCharCode(65+i); }
+
+function renderTimeReadout(q){
+  const cur = (state[q.id]&&state[q.id].cur)||{};
+  const box = document.createElement('div'); box.className='timerbox';
+  const thisAttempt = cur.correct!==undefined ? `time on this attempt: ${fmtTime(cur.seconds||0)} · ` : '';
+  box.innerHTML = `<span class="timertotal">⏱ ${thisAttempt}lifetime total on this question: ${fmtTime(totalSecondsFor(q.id))}</span>`;
+  return box;
+}
+
+function renderAttemptHistory(qid){
+  const hist = (state[qid]&&state[qid].attempts)||[];
+  if(hist.length===0) return null;
+  const div=document.createElement('div'); div.className='attempthist';
+  const dots = hist.map(a=>{
+    let cls = a.correct===true ? ((a.seconds||0)>180 ? 'slow' : 'c') : (a.correct==='partial' ? 'p' : 'w');
+    let title = a.correct===true ? (cls==='slow'?`Correct but slow (${fmtTime(a.seconds||0)})`:`Correct (${fmtTime(a.seconds||0)})`) : (a.correct==='partial'?'Partially correct':'Wrong');
+    return `<span class="dot ${cls}" title="${title}"></span>`;
+  }).join('');
+  div.innerHTML = `Past attempts on this question: ${dots} (${hist.length} previous attempt${hist.length>1?'s':''})`;
+  return div;
+}
+
+function renderQuestionCard(q){
+  const d = state[q.id]||blankDoc();
+  const s = d.cur||{};
+  const tc = TOPIC_COLORS[q.topic]||{bg:'#eee',fg:'#333'};
+  const card = document.createElement('div');
+  card.className='q'+(s.correct===true?' correct':s.correct===false?' wrong':'');
+  card.id='card-'+q.id;
+
+  const revealed = revealedTopics.has(q.id);
+  let statusHtml = s.correct===true?`<span class="status-pill correct">Correct</span>`
+    : s.correct===false?`<span class="status-pill wrong">Wrong</span>`
+    : `<span class="status-pill unattempted">Not attempted</span>`;
+  let noteFlag = (d.note&&d.note.trim())?`<span class="note-flag">&#9998; note</span>`:'';
+  const diff = difficultyFor(q.id);
+  const wc = wrongCountFor(q.id);
+
+  card.innerHTML = `
+    <div class="qtop">
+      <span class="ref">Q${q.num}</span>
+      <button class="eyebtn" data-id="${q.id}">${revealed?'Hide topic':'Show topic'}</button>
+      <span class="pillrow${revealed?' shown':''}" id="pillrow-${q.id}">
+        <span class="topic-pill" style="background:${tc.bg};color:${tc.fg}">${q.topic}</span>
+        <span class="source-pill">${q.source}</span>
+      </span>
+      <span class="difftag ${diff}">${diff}</span>
+      <button class="masterbtn" data-id="${q.id}">${d.mastered?'★ Mastered — click to unmark':'☆ Mark as mastered'}</button>
+      ${wc>=2?`<span class="badge-count hot">⚠ ${wc}× wrong</span>`:''}
+      ${noteFlag}
+      ${statusHtml}
+    </div>
+    <div class="stem">${q.stem}</div>
+    <div class="body"></div>
+  `;
+  card.querySelector('.eyebtn').addEventListener('click',()=>{
+    if(revealedTopics.has(q.id)) revealedTopics.delete(q.id); else revealedTopics.add(q.id);
+    renderAll();
+  });
+  card.querySelector('.masterbtn').addEventListener('click', async ()=>{
+    const doc = state[q.id];
+    doc.mastered = !doc.mastered;
+    await persist(currentChapter, q.id, doc);
+    renderAll();
+  });
+
+  const body = card.querySelector('.body');
+  body.appendChild(renderTimeReadout(q));
+  const answered = s.correct!==undefined;
+
+  if(q.type==='mcq'){
+    const optsDiv=document.createElement('div'); optsDiv.className='opts';
+    q.options.forEach((opt,i)=>{
+      const label=document.createElement('label');
+      let cls='';
+      if(answered){ if(i===q.correct) cls=' is-correct'; else if(s.answer===i) cls=' is-wrong'; }
+      else if(s.answer===i) cls=' picked';
+      label.className='opt'+cls;
+      label.innerHTML=`<input type="radio" name="${q.id}" value="${i}" ${s.answer===i?'checked':''} ${answered?'disabled':''}> <span>${optionLetter(i)}. ${opt}</span>`;
+      label.querySelector('input').addEventListener('change',()=>{ state[q.id].cur=state[q.id].cur||{}; state[q.id].cur.answer=i; });
+      optsDiv.appendChild(label);
+    });
+    body.appendChild(optsDiv);
+    addSimpleCheck(body,q,answered,()=>{
+      const chosen = state[q.id].cur&&state[q.id].cur.answer;
+      if(chosen===undefined){ alert('Pick an option first.'); return null; }
+      return chosen===q.correct;
+    });
+  } else if(q.type==='numeric' || q.type==='longcalc'){
+    const isLong = q.type==='longcalc';
+    const input=document.createElement('textarea');
+    input.className = isLong? 'longin':'numin';
+    input.placeholder = isLong? 'Enter your final answer (and paste workings from Excel if you like)':'Enter your answer';
+    if(s.answer!==undefined) input.value=s.answer;
+    input.disabled=answered;
+    input.addEventListener('input',()=>{ state[q.id].cur=state[q.id].cur||{}; state[q.id].cur.answer=input.value; });
+    body.appendChild(input);
+    if(isLong){
+      const hint=document.createElement('div'); hint.className='hint';
+      hint.textContent="Paste multi-line workings straight from Excel if that's easier — the last number in the box is what gets checked.";
+      body.appendChild(hint);
+    }
+    addSimpleCheck(body,q,answered,()=>{
+      const val=normalizeNum(input.value);
+      if(isNaN(val)){ alert('Enter a number.'); return null; }
+      const correctVal=normalizeNum(q.correct);
+      const tol=q.tolerance!==undefined?q.tolerance:0.02;
+      return Math.abs(val-correctVal)<=tol;
+    });
+  } else if(q.type==='multi'){
+    const optsDiv=document.createElement('div'); optsDiv.className='opts';
+    const picked=s.answer||[];
+    q.options.forEach((opt,i)=>{
+      const label=document.createElement('label');
+      let cls='';
+      if(answered){ if(q.correctIndices.includes(i)) cls=' is-correct'; else if(picked.includes(i)) cls=' is-wrong'; }
+      else if(picked.includes(i)) cls=' picked';
+      label.className='opt'+cls;
+      label.innerHTML=`<input type="checkbox" value="${i}" ${picked.includes(i)?'checked':''} ${answered?'disabled':''}> <span>${opt}</span>`;
+      label.querySelector('input').addEventListener('change',(e)=>{
+        state[q.id].cur=state[q.id].cur||{};
+        let arr=state[q.id].cur.answer||[];
+        if(e.target.checked) arr=[...new Set([...arr,i])]; else arr=arr.filter(x=>x!==i);
+        state[q.id].cur.answer=arr;
+      });
+      optsDiv.appendChild(label);
+    });
+    body.appendChild(optsDiv);
+    addSimpleCheck(body,q,answered,()=>{
+      const chosen=(state[q.id].cur&&state[q.id].cur.answer)||[];
+      const want=q.correctIndices;
+      return chosen.length===want.length && want.every(i=>chosen.includes(i));
+    });
+  } else if(q.type==='tfgroup'){
+    const wrap=document.createElement('div');
+    const ans = s.answer || new Array(q.statements.length).fill(null);
+    q.statements.forEach((st,i)=>{
+      const row=document.createElement('div'); row.className='tfrow';
+      let trueCls='',falseCls='';
+      if(answered){
+        const cv=q.correctAnswers[i];
+        if(cv===true) trueCls=' right'; else falseCls=' right';
+        if(ans[i]===true&&cv!==true) trueCls=' wrongsel';
+        if(ans[i]===false&&cv!==false) falseCls=' wrongsel';
+      } else {
+        if(ans[i]===true) trueCls=' sel';
+        if(ans[i]===false) falseCls=' sel';
+      }
+      row.innerHTML=`<span class="lbl">${st}</span><span class="tfbtns">
+        <button type="button" class="tfbtn true${trueCls}" data-i="${i}" data-v="true" ${answered?'disabled':''}>True</button>
+        <button type="button" class="tfbtn false${falseCls}" data-i="${i}" data-v="false" ${answered?'disabled':''}>False</button></span>`;
+      wrap.appendChild(row);
+    });
+    body.appendChild(wrap);
+    if(!answered){
+      wrap.querySelectorAll('.tfbtn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          state[q.id].cur=state[q.id].cur||{};
+          let arr=state[q.id].cur.answer||new Array(q.statements.length).fill(null);
+          arr[+btn.dataset.i]=btn.dataset.v==='true';
+          state[q.id].cur.answer=arr;
+          renderAll();
+        });
+      });
+    }
+    addSimpleCheck(body,q,answered,()=>{
+      const ans=state[q.id].cur&&state[q.id].cur.answer;
+      if(!ans||ans.includes(null)){ alert('Answer every row first.'); return null; }
+      return q.correctAnswers.every((v,i)=>v===ans[i]);
+    });
+  } else if(q.type==='long'){
+    addLongGraded(body,q,answered,s);
+  }
+
+  if(answered && q.type!=='long'){
+    const rev=document.createElement('div'); rev.className='reveal';
+    rev.innerHTML=`<div class="verdict ${s.correct?'correct':'wrong'}">${s.correct?'&#10003; Correct':'&#10007; Not quite'}</div><div>${q.explanation}</div>`;
+    body.appendChild(rev);
+  }
+  const hist = renderAttemptHistory(q.id);
+  if(hist) body.appendChild(hist);
+
+  addNotesUI(body,q,d);
+  return card;
+}
+
+function addSimpleCheck(body,q,answered,evaluate){
+  if(answered) return;
+  const div=document.createElement('div'); div.className='actions';
+  const btn=document.createElement('button'); btn.className='btn primary'; btn.textContent='Check answer';
+  btn.addEventListener('click',()=>{
+    const result=evaluate();
+    if(result===null) return;
+    const secs=captureMarkTime();
+    state[q.id].cur.seconds=(state[q.id].cur.seconds||0)+secs;
+    state[q.id].cur.correct=result;
+    persist(currentChapter,q.id);
+    renderAll();
+  });
+  div.appendChild(btn); body.appendChild(div);
+}
+
+function addLongGraded(body,q,answered,s){
+  if(answered){
+    const rev=document.createElement('div'); rev.className='reveal';
+    const verdictClass = s.correct===true?'correct':s.correct==='partial'?'partial':'wrong';
+    const verdictText = s.correct===true?'&#10003; Correct':s.correct==='partial'?'Partially correct':'&#10007; Needs review';
+    rev.innerHTML = `<div class="verdict ${verdictClass}">${verdictText}</div>
+      <div><b>Your answer:</b> ${s.answer||'(none typed — self-marked)'}</div>
+      <div style="margin-top:6px;"><b>Model answer:</b> ${q.modelAnswer}</div>
+      ${s.feedback?`<div style="margin-top:6px;"><b>Feedback:</b> ${s.feedback}</div>`:''}`;
+    body.appendChild(rev);
+    return;
+  }
+  const ta=document.createElement('textarea');
+  ta.className='longin';
+  ta.placeholder='Type or paste your answer here...';
+  body.appendChild(ta);
+  const status=document.createElement('div'); status.className='hint'; status.textContent='';
+  body.appendChild(status);
+
+  const div=document.createElement('div'); div.className='actions';
+  if(sampleFn){
+    const gradeBtn=document.createElement('button'); gradeBtn.className='btn primary'; gradeBtn.textContent='Grade my answer';
+    gradeBtn.addEventListener('click',async()=>{
+      const userAns=ta.value.trim();
+      if(!userAns){ alert('Type your answer first.'); return; }
+      gradeBtn.disabled=true;
+      status.innerHTML='<span class="spinner"></span>Grading...';
+      try{
+        const result = await sampleFn.json([
+          {role:'user',content:`You are grading an ACCA Performance Management (PM) exam-style answer. Be a fair but rigorous tutor.\n\nQuestion: ${q.stem.replace(/<[^>]+>/g,'')}\n\nModel answer: ${q.modelAnswer.replace(/<[^>]+>/g,'')}\n\nStudent's answer: ${userAns}\n\nJudge whether the student's answer captures the key correct points, even if worded differently or less formally. Respond ONLY with JSON in this exact shape: {"verdict":"correct"|"partial"|"incorrect","feedback":"one or two sentences of specific, encouraging feedback"}`}
+        ]);
+        const secs=captureMarkTime();
+        state[q.id].cur.seconds=(state[q.id].cur.seconds||0)+secs;
+        state[q.id].cur.answer=userAns;
+        state[q.id].cur.correct = result.verdict==='correct'?true:(result.verdict==='partial'?'partial':false);
+        state[q.id].cur.feedback = result.feedback||'';
+        persist(currentChapter,q.id);
+        renderAll();
+      }catch(e){
+        status.textContent='Grading failed — you can mark yourself instead below.';
+        gradeBtn.disabled=false;
+        showManualMark(div,q,ta);
+      }
+    });
+    div.appendChild(gradeBtn);
+  } else {
+    showManualMark(div,q,ta);
+  }
+  body.appendChild(div);
+}
+function showManualMark(div,q,ta){
+  const revealBtn=document.createElement('button'); revealBtn.className='btn ghost'; revealBtn.textContent='Reveal model answer';
+  div.appendChild(revealBtn);
+  revealBtn.addEventListener('click',()=>{
+    div.innerHTML=`<div class="reveal"><b>Model answer:</b> ${q.modelAnswer}</div>
+      <div class="actions">
+        <button class="btn good" id="good-${q.id}">I had this right</button>
+        <button class="btn bad" id="bad-${q.id}">Need to review</button>
+      </div>`;
+    document.getElementById('good-'+q.id).addEventListener('click',()=>{
+      const secs=captureMarkTime(); state[q.id].cur.seconds=(state[q.id].cur.seconds||0)+secs;
+      state[q.id].cur.answer=ta.value; state[q.id].cur.correct=true; persist(currentChapter,q.id); renderAll();
+    });
+    document.getElementById('bad-'+q.id).addEventListener('click',()=>{
+      const secs=captureMarkTime(); state[q.id].cur.seconds=(state[q.id].cur.seconds||0)+secs;
+      state[q.id].cur.answer=ta.value; state[q.id].cur.correct=false; persist(currentChapter,q.id); renderAll();
+    });
+  });
+}
+
+function addNotesUI(body,q,d){
+  const wrap=document.createElement('div'); wrap.className='notewrap';
+  if(d.note&&d.note.trim()){
+    wrap.innerHTML=`<div class="saved-note"><b>YOUR NOTE</b><br>${d.note}</div><button class="toggle-note-btn" style="margin-top:6px;">Edit note</button>`;
+    wrap.querySelector('button').addEventListener('click',()=>showNoteEditor(wrap,q,d.note));
+  } else {
+    wrap.innerHTML=`<button class="toggle-note-btn">+ Add a note</button>`;
+    wrap.querySelector('button').addEventListener('click',()=>showNoteEditor(wrap,q,''));
+  }
+  body.appendChild(wrap);
+}
+function showNoteEditor(wrap,q,existing){
+  wrap.innerHTML=`<textarea placeholder="Write a reminder for your revision...">${existing}</textarea><div class="actions"><button class="btn primary">Save note</button></div>`;
+  const ta=wrap.querySelector('textarea'); ta.focus();
+  wrap.querySelector('button').addEventListener('click',()=>{
+    state[q.id].note=ta.value;
+    persist(currentChapter,q.id);
+    renderAll();
+  });
+}
+
+/* ============ INSIGHTS DASHBOARD ============ */
+function polarToCartesian(cx,cy,r,angleDeg){
+  const a = (angleDeg-90) * Math.PI/180;
+  return {x: cx + r*Math.cos(a), y: cy + r*Math.sin(a)};
+}
+function renderTimePie(rows){
+  const total = rows.reduce((s,row)=>s+row.secSum,0);
+  if(total<=0) return `<div class="empty-note">Use the Play timer on a few questions and this will populate — worth doing so you know which concepts are costing you exam time.</div>`;
+  const cx=70, cy=70, rad=65;
+  let angle=0;
+  const slices = rows.map(row=>{
+    const frac = row.secSum/total;
+    const startAngle = angle, endAngle = angle + frac*360;
+    angle = endAngle;
+    const tc = TOPIC_COLORS[row.topic]||{bg:'#ccc'};
+    const large = (endAngle-startAngle)>180?1:0;
+    const p1 = polarToCartesian(cx,cy,rad,startAngle), p2 = polarToCartesian(cx,cy,rad,endAngle);
+    const d = `M ${cx} ${cy} L ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${rad} ${rad} 0 ${large} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} Z`;
+    return `<path class="pieslice" d="${d}" fill="${tc.bg}" stroke="var(--card)" stroke-width="1"><title>${row.topic}: ${fmtTime(row.secSum)} total time, ${fmtTime(row.avgSec)} avg/question</title></path>`;
+  }).join('');
+  const legend = rows.map(row=>{
+    const tc = TOPIC_COLORS[row.topic]||{bg:'#ccc'};
+    return `<div class="lg-row"><span class="lg-swatch" style="background:${tc.bg}"></span>${row.topic} — ${fmtTime(row.avgSec)} avg <span style="color:var(--sub)">(${fmtTime(row.secSum)} total)</span></div>`;
+  }).join('');
+  return `<div class="piewrap"><svg width="140" height="140" viewBox="0 0 140 140">${slices}</svg><div class="pielegend">${legend}</div></div>`;
+}
+
+function renderInsights(){
+  const panel = document.getElementById('insightsPanel');
+  const qs = chapterOf(currentChapter).questions;
+
+  const anyAttempts = qs.some(q=>allAttemptsFor(q.id).length>0);
+  const scopeToggleHtml = `<div style="display:flex;gap:6px;margin-bottom:12px;">
+      <button class="chip${insightScope==='current'?' active':''}" data-scope="current">This attempt</button>
+      <button class="chip${insightScope==='collective'?' active':''}" data-scope="collective">All attempts (collective)</button>
+    </div>`;
+
+  if(!anyAttempts){
+    panel.innerHTML = `<h3>📊 Insights — ${chapterOf(currentChapter).label}</h3>${scopeToggleHtml}<div class="empty-note">Answer a few questions first — this dashboard fills in once you've got some attempts on the board.</div>`;
+    attachScopeHandlers(panel);
+    return;
+  }
+  const scope = insightScope;
+
+  // topic aggregation (respects scope)
+  const topicAgg = {};
+  qs.forEach(q=>{
+    const t=q.topic; topicAgg[t]=topicAgg[t]||{wrong:0,total:0,secSum:0,secCount:0};
+    attemptsInScope(q.id,scope).forEach(a=>{
+      topicAgg[t].total++;
+      if(a.correct===false) topicAgg[t].wrong++;
+      if(a.seconds){ topicAgg[t].secSum+=a.seconds; topicAgg[t].secCount++; }
+    });
+  });
+  const topicRows = Object.keys(topicAgg).filter(t=>topicAgg[t].total>0).map(t=>({
+    topic:t,
+    wrongRate: topicAgg[t].wrong/topicAgg[t].total,
+    avgSec: topicAgg[t].secCount? topicAgg[t].secSum/topicAgg[t].secCount : 0,
+    secSum: topicAgg[t].secSum,
+    total: topicAgg[t].total
+  })).sort((a,b)=>b.wrongRate-a.wrongRate);
+
+  const timeRows = topicRows.slice().filter(r=>r.avgSec>0).sort((a,b)=>b.avgSec-a.avgSec);
+
+  // tricky questions — always collective, since "keeps getting wrong" is inherently a history question
+  const tricky = qs.map(q=>({q,wc:wrongCountFor(q.id)})).filter(x=>x.wc>=2).sort((a,b)=>b.wc-a.wc);
+
+  let html = `<h3>📊 Insights — ${chapterOf(currentChapter).label}</h3>${scopeToggleHtml}`;
+
+  html += `<div class="sec"><div class="sechead">Topics to revise (highest wrong-rate first)</div>`;
+  if(topicRows.length===0){ html+=`<div class="empty-note">No data yet.</div>`; }
+  topicRows.forEach(r=>{
+    const tc=TOPIC_COLORS[r.topic]||{bg:'#eee',fg:'#333'};
+    html += `<div class="insight-row"><span><span class="topic-pill" style="background:${tc.bg};color:${tc.fg}">${r.topic}</span></span>
+      <span class="badge-count${r.wrongRate>=0.5?' hot':''}">${Math.round(r.wrongRate*100)}% wrong across ${r.total} attempt${r.total>1?'s':''}</span></div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="sec"><div class="sechead">Questions you keep getting wrong</div>`;
+  if(tricky.length===0){ html += `<div class="empty-note">None yet — nothing has been wrong twice or more. 🎉</div>`; }
+  tricky.forEach(x=>{
+    const tc=TOPIC_COLORS[x.q.topic]||{bg:'#eee',fg:'#333'};
+    html += `<div class="tricky-item"><b>Q${x.q.num}</b> <span class="topic-pill" style="background:${tc.bg};color:${tc.fg}">${x.q.topic}</span> — wrong ${x.wc} time${x.wc>1?'s':''}</div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="sec"><div class="sechead">Where your time is going (hover a slice for detail)</div>${renderTimePie(timeRows)}</div>`;
+
+  panel.innerHTML = html;
+  attachScopeHandlers(panel);
+}
+function attachScopeHandlers(panel){
+  panel.querySelectorAll('.chip[data-scope]').forEach(btn=>{
+    btn.addEventListener('click',()=>{ insightScope=btn.dataset.scope; renderInsights(); });
+  });
+}
+
+document.getElementById('insightsToggle').addEventListener('click',()=>{
+  const panel = document.getElementById('insightsPanel');
+  const showing = panel.style.display!=='none';
+  panel.style.display = showing? 'none':'block';
+  if(!showing) renderInsights();
+});
+
+function renderAll(){
+  renderStatCards();
+  const list=document.getElementById('qlist');
+  list.innerHTML='';
+  const qs=chapterOf(currentChapter).questions;
+  qs.filter(passesFilter).forEach(q=>list.appendChild(renderQuestionCard(q)));
+  if(list.children.length===0){
+    list.innerHTML=`<div style="text-align:center;color:var(--sub);padding:30px 0;font-size:14px;">No questions match this filter.</div>`;
+  }
+  document.getElementById('footerNote').textContent = chapterOf(currentChapter).footer;
+  if(document.getElementById('insightsPanel').style.display!=='none') renderInsights();
+}
+
+document.getElementById('shareHint').addEventListener('click',()=>{
+  const box=document.getElementById('shareBox');
+  box.style.display = box.style.display==='none'?'block':'none';
+});
+
+document.getElementById('sessionToggle').addEventListener('click', toggleSession);
+document.getElementById('endSessionBtn').addEventListener('click', async ()=>{
+  if(sessionRunning) toggleSession(); // pauses + persists via existing logic
+  await persistSession(currentChapter);
+  const qs = chapterOf(currentChapter).questions;
+  let attempted=0, correct=0;
+  qs.forEach(q=>{ const c=state[q.id]&&state[q.id].cur; if(c&&c.correct!==undefined){ attempted++; if(c.correct===true) correct++; } });
+  alert(`Session ended — nice work.\n\nThis round: ${attempted}/${qs.length} attempted, ${correct} correct.\nTotal time played on this chapter: ${fmtTime(sessionTotal)}.\n\nEverything is saved. Log back in anytime — you'll land right back on this chapter, exactly where you stopped.`);
+});
+
+function maybePromptSession(){
+  if(sessionRunning) return;
+  document.getElementById('sessionPrompt').style.display='flex';
+  document.body.classList.add('gate-blur');
+}
+document.getElementById('sessionPromptPlay').addEventListener('click', ()=>{
+  document.getElementById('sessionPrompt').style.display='none';
+  document.body.classList.remove('gate-blur');
+  if(!sessionRunning) toggleSession();
+});
+document.getElementById('sessionPromptSkip').addEventListener('click', ()=>{
+  document.getElementById('sessionPrompt').style.display='none';
+  document.body.classList.remove('gate-blur');
+});
+
+async function boot(){
+  await initCapabilities();
+  const lastChapterId = await loadLastPosition();
+  if(lastChapterId && chapterOf(lastChapterId) && !chapterOf(lastChapterId).locked) currentChapter = lastChapterId;
+  renderChapterTabs();
+  await loadState(currentChapter);
+  await loadSession(currentChapter);
+  renderSessionBar();
+  renderAll();
+  await saveLastPosition();
+  setTimeout(()=>{ scrollToNextUnattempted(); maybePromptSession(); }, 300);
+}
+
+document.getElementById('loginBtn').addEventListener('click', handleLogin);
+document.getElementById('loginPassword').addEventListener('keydown', e=>{ if(e.key==='Enter') handleLogin(); });
+document.getElementById('mfaVerifyBtn').addEventListener('click', handleMfaVerify);
+document.getElementById('mfaCode').addEventListener('keydown', e=>{ if(e.key==='Enter') handleMfaVerify(); });
+document.getElementById('enrollConfirmBtn').addEventListener('click', handleEnrollConfirm);
+document.getElementById('enrollCode').addEventListener('keydown', e=>{ if(e.key==='Enter') handleEnrollConfirm(); });
+document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+document.getElementById('securityBtn').addEventListener('click', ()=>{
+  const panel = document.getElementById('securityPanel');
+  const showing = panel.style.display!=='none';
+  panel.style.display = showing?'none':'block';
+  if(!showing) renderSecurityPanel();
+});
+
+(async function start(){
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const {data:{session}} = await sb.auth.getSession();
+  if(session && session.user){
+    currentUserId = session.user.id;
+    const gateShown = await enforceMfaGate();
+    if(!gateShown){
+      hideLoginGate();
+      armIdleTimer();
+      await boot();
+    }
+  } else {
+    showLoginGate();
+  }
+})();
+</script>
+
+</body>
+</html>
